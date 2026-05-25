@@ -2671,26 +2671,63 @@ window.addEventListener('scroll', () => {
 });
 <script type="module">
 
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+/* ===========================
+   NAV ACTIVE ON SCROLL
+=========================== */
 
-import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-analytics.js";
+window.addEventListener('scroll', () => {
+  const y = window.scrollY;
+
+  document.querySelectorAll('.nav-link')
+    .forEach(l => l.classList.remove('active'));
+
+  if (y < 200) {
+    const firstLink = document.querySelector('.nav-link');
+
+    if(firstLink){
+      firstLink.classList.add('active');
+    }
+  }
+});
+
+
+/* ===========================
+   FIREBASE
+=========================== */
+
+import { initializeApp }
+from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+
+import { getAnalytics }
+from "https://www.gstatic.com/firebasejs/10.12.2/firebase-analytics.js";
+
 
 const firebaseConfig = {
+
   apiKey: "AIzaSyDqP_AHwWLKrz1IvSi3uaZ9hbQua5RKMV0",
+
   authDomain: "solo-developer-64d04.firebaseapp.com",
+
   projectId: "solo-developer-64d04",
+
   storageBucket: "solo-developer-64d04.firebasestorage.app",
+
   messagingSenderId: "666847721740",
+
   appId: "1:666847721740:web:61fa7134c3da33dca5b129",
+
   measurementId: "G-0W8T67MLKQ"
+
 };
+
 
 const app = initializeApp(firebaseConfig);
 
 const analytics = getAnalytics(app);
 
-console.log("Firebase Connected Successfully!");
+console.log("🔥 Firebase Connected Successfully!");
 
 </script>
+
 </body>
 </html>
