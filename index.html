@@ -1,74 +1,338 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-
-    <meta charset="UTF-8">
-   
-    <meta name="google-site-verification" 
-    content="btf-3FLubv4w5exCsnRuY1aW3bHaSkzaivzda8pTvdk" />
-    
-    <meta name="viewport"
-    content="width=device-width, initial-scale=1.0">
-
-    <meta name="description"
-    content="Run From Epsteins is a psychological horror survival game set in a terrifying atmospheric forest.">
-
-    <meta name="keywords"
-    content="horror game, survival horror, Unity game, psychological horror, Run From Epsteins">
-
-    <meta name="author"
-    content="Shreevatsa">
-
-    <title>Run From Epsteins</title>
-
-    <link rel="stylesheet" href="style.css">
-
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>DEVHIVE — Publish Everything</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+      --bg: #0a0a0f;
+      --surface: #111118;
+      --card: #16161f;
+      --border: #2a2a3a;
+      --accent: #f0c040;
+      --accent2: #e05a5a;
+      --accent3: #5ae0b0;
+      --accent4: #5a90e0;
+      --text: #f0eeff;
+      --muted: #7a7a9a;
+      --font-head: 'Syne', sans-serif;
+      --font-body: 'DM Sans', sans-serif;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font-body);
+      font-size: 15px;
+      line-height: 1.6;
+      overflow-x: hidden;
+    }
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E");
+      opacity: 0.03;
+      pointer-events: none;
+      z-index: 9999;
+    }
+    nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 20px 48px;
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      background: rgba(10,10,15,0.85);
+      backdrop-filter: blur(12px);
+      z-index: 100;
+    }
+    .logo {
+      font-family: var(--font-head);
+      font-weight: 800;
+      font-size: 1.5rem;
+      letter-spacing: -1px;
+      color: var(--text);
+      text-decoration: none;
+    }
+    .logo span { color: var(--accent); }
+    .nav-links { display: flex; gap: 32px; list-style: none; }
+    .nav-links a { color: var(--muted); text-decoration: none; font-size: 0.9rem; font-weight: 500; transition: color 0.2s; }
+    .nav-links a:hover { color: var(--text); }
+    .nav-cta { display: flex; gap: 12px; }
+    .btn { padding: 9px 20px; border-radius: 6px; font-family: var(--font-body); font-weight: 500; font-size: 0.88rem; cursor: pointer; text-decoration: none; transition: all 0.2s; border: none; display: inline-block; }
+    .btn-ghost { background: transparent; border: 1px solid var(--border); color: var(--text); }
+    .btn-ghost:hover { border-color: var(--accent); color: var(--accent); }
+    .btn-primary { background: var(--accent); color: #0a0a0f; font-weight: 700; }
+    .btn-primary:hover { background: #ffd060; transform: translateY(-1px); }
+    .hero { padding: 100px 48px 80px; position: relative; overflow: hidden; }
+    .hero-glow {
+      position: absolute; top: -100px; left: 50%; transform: translateX(-50%);
+      width: 700px; height: 400px;
+      background: radial-gradient(ellipse, rgba(240,192,64,0.12) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .hero-tag {
+      display: inline-block; font-size: 0.75rem; font-weight: 700; letter-spacing: 3px;
+      text-transform: uppercase; color: var(--accent); border: 1px solid rgba(240,192,64,0.3);
+      padding: 5px 14px; border-radius: 100px; margin-bottom: 28px;
+    }
+    .hero h1 {
+      font-family: var(--font-head); font-size: clamp(3rem, 7vw, 6rem); font-weight: 800;
+      line-height: 1.0; letter-spacing: -3px; max-width: 820px; margin-bottom: 28px;
+    }
+    .hero h1 em { font-style: normal; color: var(--accent); }
+    .hero p { font-size: 1.15rem; color: var(--muted); max-width: 520px; margin-bottom: 40px; font-weight: 300; }
+    .hero-actions { display: flex; gap: 14px; align-items: center; flex-wrap: wrap; }
+    .hero-actions .btn { padding: 13px 28px; font-size: 0.95rem; }
+    .hero-stats { display: flex; gap: 48px; margin-top: 72px; padding-top: 40px; border-top: 1px solid var(--border); }
+    .stat-num { font-family: var(--font-head); font-size: 2rem; font-weight: 800; color: var(--text); }
+    .stat-label { font-size: 0.82rem; color: var(--muted); margin-top: 2px; }
+    .section { padding: 72px 48px; }
+    .section-header { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 32px; }
+    .section-title { font-family: var(--font-head); font-size: 1.6rem; font-weight: 800; letter-spacing: -0.5px; }
+    .see-all { color: var(--accent); text-decoration: none; font-size: 0.85rem; font-weight: 500; transition: opacity 0.2s; }
+    .see-all:hover { opacity: 0.7; }
+    .categories { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 48px; }
+    .cat-pill {
+      display: flex; align-items: center; gap: 8px; padding: 10px 20px; border-radius: 100px;
+      border: 1px solid var(--border); background: var(--card); color: var(--muted);
+      font-size: 0.88rem; font-weight: 500; cursor: pointer; transition: all 0.2s; text-decoration: none;
+    }
+    .cat-pill:hover, .cat-pill.active { border-color: var(--accent); color: var(--accent); background: rgba(240,192,64,0.07); }
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
+    .card {
+      background: var(--card); border: 1px solid var(--border); border-radius: 12px;
+      overflow: hidden; transition: all 0.25s; cursor: pointer; text-decoration: none; color: inherit; display: block;
+    }
+    .card:hover { border-color: rgba(240,192,64,0.4); transform: translateY(-4px); box-shadow: 0 16px 40px rgba(0,0,0,0.4); }
+    .card-thumb-placeholder {
+      width: 100%; aspect-ratio: 16/9; display: flex; align-items: center;
+      justify-content: center; font-size: 3rem;
+    }
+    .card-body { padding: 16px; }
+    .card-type { font-size: 0.7rem; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 6px; }
+    .type-game { color: var(--accent2); }
+    .type-app  { color: var(--accent4); }
+    .type-video{ color: var(--accent3); }
+    .type-photo{ color: var(--accent);  }
+    .type-post { color: #c084fc; }
+    .card-title { font-family: var(--font-head); font-size: 1rem; font-weight: 700; margin-bottom: 6px; line-height: 1.3; }
+    .card-desc { font-size: 0.82rem; color: var(--muted); margin-bottom: 14px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+    .card-footer { display: flex; align-items: center; justify-content: space-between; }
+    .card-author { display: flex; align-items: center; gap: 8px; font-size: 0.8rem; color: var(--muted); }
+    .avatar { width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.65rem; font-weight: 700; color: #0a0a0f; }
+    .card-meta { display: flex; gap: 12px; font-size: 0.78rem; color: var(--muted); }
+    .featured-banner {
+      margin: 0 48px 72px; border-radius: 16px;
+      background: linear-gradient(135deg, #1a1a28 0%, #0f1a2e 50%, #1a0f1a 100%);
+      border: 1px solid var(--border); padding: 56px;
+      display: grid; grid-template-columns: 1fr 1fr; gap: 48px;
+      align-items: center; position: relative; overflow: hidden;
+    }
+    .featured-glow {
+      position: absolute; bottom: -60px; right: -60px; width: 300px; height: 300px;
+      background: radial-gradient(circle, rgba(90,224,176,0.15) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .featured-tag { font-size: 0.7rem; font-weight: 700; letter-spacing: 3px; text-transform: uppercase; color: var(--accent3); margin-bottom: 16px; }
+    .featured-title { font-family: var(--font-head); font-size: 2.4rem; font-weight: 800; letter-spacing: -1px; line-height: 1.1; margin-bottom: 16px; }
+    .featured-desc { color: var(--muted); font-size: 0.95rem; line-height: 1.7; margin-bottom: 28px; }
+    .featured-img {
+      border-radius: 10px; width: 100%; aspect-ratio: 16/10;
+      background: linear-gradient(135deg, #1a2a1a, #0f1f2e);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 5rem; border: 1px solid var(--border);
+    }
+    .submit-section {
+      margin: 0 48px 72px; border-radius: 16px; background: var(--accent);
+      padding: 64px; text-align: center; position: relative; overflow: hidden;
+    }
+    .submit-section::before {
+      content: ''; position: absolute; top: -50%; left: -20%; width: 60%; height: 200%;
+      background: rgba(255,255,255,0.08); transform: rotate(-15deg); pointer-events: none;
+    }
+    .submit-section h2 { font-family: var(--font-head); font-size: 2.5rem; font-weight: 800; color: #0a0a0f; letter-spacing: -1px; margin-bottom: 12px; }
+    .submit-section p { color: rgba(10,10,15,0.65); font-size: 1rem; margin-bottom: 32px; max-width: 480px; margin-left: auto; margin-right: auto; }
+    .submit-section .btn { background: #0a0a0f; color: var(--accent); font-size: 1rem; padding: 14px 36px; border-radius: 8px; }
+    .submit-section .btn:hover { background: #1a1a2f; transform: translateY(-2px); }
+    footer {
+      border-top: 1px solid var(--border); padding: 40px 48px;
+      display: flex; align-items: center; justify-content: space-between;
+      color: var(--muted); font-size: 0.85rem;
+    }
+    @keyframes fadeUp { from { opacity: 0; transform: translateY(24px); } to { opacity: 1; transform: translateY(0); } }
+    .hero-tag    { animation: fadeUp 0.5s ease both; }
+    .hero h1     { animation: fadeUp 0.5s 0.1s ease both; }
+    .hero p      { animation: fadeUp 0.5s 0.2s ease both; }
+    .hero-actions{ animation: fadeUp 0.5s 0.3s ease both; }
+    .hero-stats  { animation: fadeUp 0.5s 0.4s ease both; }
+    @media (max-width: 768px) {
+      nav { padding: 16px 20px; }
+      .nav-links { display: none; }
+      .hero { padding: 60px 20px 48px; }
+      .section { padding: 48px 20px; }
+      .featured-banner { margin: 0 20px 48px; padding: 32px; grid-template-columns: 1fr; }
+      .submit-section { margin: 0 20px 48px; padding: 40px 24px; }
+      footer { padding: 28px 20px; flex-direction: column; gap: 12px; text-align: center; }
+      .hero-stats { gap: 24px; flex-wrap: wrap; }
+    }
+  </style>
 </head>
-
 <body>
 
-    <!-- BACKGROUND MUSIC -->
-
-    <audio autoplay loop>
-        <source src="audio/ambient.mp3" type="audio/mp3">
-    </audio>
-
-    <!-- MAIN OVERLAY -->
-
-    <div class="overlay">
-
-        <h1>RUN FROM EPSTEINS</h1>
-
-        <p class="tagline">
-            Psychological Horror Survival Game
-        </p>
-
-        <!-- DOWNLOAD BUTTON -->
-
-        <a href="https://shreevatsa.itch.io/run-from-epstein"
-        target="_blank">
-
-            <button>
-                DOWNLOAD GAME
-            </button>
-
-        </a>
-
-        <!-- SCREENSHOTS -->
-
-        <div class="screenshots">
-
-            <img src="images/game1.png">
-
-            <img src="images/game2.png">
-
-            <img src="images/game3.png">
-
-        </div>
-
+  <nav>
+    <a href="#" class="logo">DEV<span>HIVE</span></a>
+    <ul class="nav-links">
+      <li><a href="#browse">Browse</a></li>
+      <li><a href="#games">Games</a></li>
+      <li><a href="#apps">Apps</a></li>
+      <li><a href="#community">Community</a></li>
+    </ul>
+    <div class="nav-cta">
+      <a href="#" class="btn btn-ghost">Log in</a>
+      <a href="#publish" class="btn btn-primary">Publish ↑</a>
     </div>
+  </nav>
+
+  <section class="hero">
+    <div class="hero-glow"></div>
+    <div class="hero-tag">🚀 Open Platform for Creators</div>
+    <h1>Publish.<br/>Discover.<br/><em>Earn.</em></h1>
+    <p>DEVHIVE is the open platform where developers, artists, and creators share games, apps, videos, photos, and posts — and get rewarded for it.</p>
+    <div class="hero-actions">
+      <a href="#publish" class="btn btn-primary">Start Publishing →</a>
+      <a href="#browse" class="btn btn-ghost">Browse Creations</a>
+    </div>
+    <div class="hero-stats">
+      <div><div class="stat-num">1.2K+</div><div class="stat-label">Creators</div></div>
+      <div><div class="stat-num">4.8K+</div><div class="stat-label">Published Works</div></div>
+      <div><div class="stat-num">Free</div><div class="stat-label">To Join</div></div>
+    </div>
+  </section>
+
+  <div class="featured-banner">
+    <div class="featured-glow"></div>
+    <div>
+      <div class="featured-tag">✦ Editor's Pick</div>
+      <div class="featured-title">Run From Epsteins</div>
+      <div class="featured-desc">A psychological horror survival game set in a terrifying atmospheric forest. Can you make it out alive? One of the most chilling indie games on the platform.</div>
+      <div style="display:flex;gap:12px;flex-wrap:wrap;">
+        <a href="https://shreevatsa.itch.io/run-from-epstein" target="_blank" class="btn btn-primary">Play Now →</a>
+        <a href="#" class="btn btn-ghost">View Profile</a>
+      </div>
+    </div>
+    <div class="featured-img">🌲</div>
+  </div>
+
+  <section class="section" id="browse">
+    <div class="section-header">
+      <div class="section-title">Browse Everything</div>
+      <a href="#" class="see-all">See all →</a>
+    </div>
+    <div class="categories">
+      <a href="#" class="cat-pill active"><span>✦</span> All</a>
+      <a href="#" class="cat-pill"><span>🎮</span> Games</a>
+      <a href="#" class="cat-pill"><span>📱</span> Apps</a>
+      <a href="#" class="cat-pill"><span>🎬</span> Videos</a>
+      <a href="#" class="cat-pill"><span>📷</span> Photos</a>
+      <a href="#" class="cat-pill"><span>✍️</span> Posts</a>
+      <a href="#" class="cat-pill"><span>🎵</span> Music</a>
+    </div>
+    <div class="grid">
+      <a href="https://nithyashreeshre-dotcom.github.io/solo-developer-dotcom/" target="_blank" class="card">
+        <div class="card-thumb-placeholder" style="background:linear-gradient(135deg,#1a0f1f,#2a0f2f);">🎮</div>
+        <div class="card-body">
+          <div class="card-type type-game">Game</div>
+          <div class="card-title">Run From Epsteins</div>
+          <div class="card-desc">Psychological horror survival game set deep in an atmospheric forest.</div>
+          <div class="card-footer">
+            <div class="card-author"><div class="avatar" style="background:var(--accent2);">S</div>Shreevatsa</div>
+            <div class="card-meta"><span>⭐ 4.9</span><span>↓ 820</span></div>
+          </div>
+        </div>
+      </a>
+      <a href="#" class="card">
+        <div class="card-thumb-placeholder" style="background:linear-gradient(135deg,#0f1a2e,#0f2a1a);">📱</div>
+        <div class="card-body">
+          <div class="card-type type-app">App</div>
+          <div class="card-title">TaskFlow — Focus Timer</div>
+          <div class="card-desc">A minimal Pomodoro-based productivity app built in Python with a clean UI.</div>
+          <div class="card-footer">
+            <div class="card-author"><div class="avatar" style="background:var(--accent4);">A</div>arjundev</div>
+            <div class="card-meta"><span>⭐ 4.7</span><span>↓ 340</span></div>
+          </div>
+        </div>
+      </a>
+      <a href="#" class="card">
+        <div class="card-thumb-placeholder" style="background:linear-gradient(135deg,#1a1f0f,#0f1a0f);">🎬</div>
+        <div class="card-body">
+          <div class="card-type type-video">Video</div>
+          <div class="card-title">Building a Game Engine from Scratch</div>
+          <div class="card-desc">Full devlog series — how I coded collision, physics, and rendering in C++.</div>
+          <div class="card-footer">
+            <div class="card-author"><div class="avatar" style="background:var(--accent3);">N</div>nitro_coder</div>
+            <div class="card-meta"><span>👁 12.4K</span><span>❤ 890</span></div>
+          </div>
+        </div>
+      </a>
+      <a href="#" class="card">
+        <div class="card-thumb-placeholder" style="background:linear-gradient(135deg,#1f1a0f,#2f200f);">📷</div>
+        <div class="card-body">
+          <div class="card-type type-photo">Photo</div>
+          <div class="card-title">Midnight City — Photo Series</div>
+          <div class="card-desc">Urban nightscapes captured across Bangalore, Mumbai and Hyderabad.</div>
+          <div class="card-footer">
+            <div class="card-author"><div class="avatar" style="background:var(--accent);">P</div>priya.lens</div>
+            <div class="card-meta"><span>👁 5.2K</span><span>❤ 412</span></div>
+          </div>
+        </div>
+      </a>
+      <a href="#" class="card">
+        <div class="card-thumb-placeholder" style="background:linear-gradient(135deg,#1a0f2e,#2e0f2e);">✍️</div>
+        <div class="card-body">
+          <div class="card-type type-post">Post</div>
+          <div class="card-title">How I Learned to Code in 3 Months</div>
+          <div class="card-desc">My honest journey from zero to building my first game as a pre-college student.</div>
+          <div class="card-footer">
+            <div class="card-author"><div class="avatar" style="background:#c084fc;">R</div>ravi.builds</div>
+            <div class="card-meta"><span>👁 8.9K</span><span>❤ 621</span></div>
+          </div>
+        </div>
+      </a>
+      <a href="#" class="card">
+        <div class="card-thumb-placeholder" style="background:linear-gradient(135deg,#0f1f2e,#0f0f2e);">📱</div>
+        <div class="card-body">
+          <div class="card-type type-app">App</div>
+          <div class="card-title">BudgetBro — Expense Tracker</div>
+          <div class="card-desc">Track expenses, set budgets, and visualize spending — all offline, no account needed.</div>
+          <div class="card-footer">
+            <div class="card-author"><div class="avatar" style="background:var(--accent4);">K</div>kartik_dev</div>
+            <div class="card-meta"><span>⭐ 4.8</span><span>↓ 200</span></div>
+          </div>
+        </div>
+      </a>
+    </div>
+  </section>
+
+  <div class="submit-section" id="publish">
+    <h2>Your turn to publish.</h2>
+    <p>Share your game, app, video, photo, or post with thousands of creators and earn from your work.</p>
+    <a href="mailto:hello@devhive.com" class="btn">Submit Your Work ↑</a>
+  </div>
+
+  <footer>
+    <div><strong style="color:var(--text);font-family:'Syne',sans-serif;">DEV<span style="color:var(--accent)">HIVE</span></strong> — Made with ❤️ by Shreevatsa</div>
+    <div style="display:flex;gap:24px;">
+      <a href="#" style="color:var(--muted);text-decoration:none;">About</a>
+      <a href="#" style="color:var(--muted);text-decoration:none;">Contact</a>
+      <a href="https://github.com/nithyashreeshre-dotcom" target="_blank" style="color:var(--muted);text-decoration:none;">GitHub</a>
+    </div>
+  </footer>
 
 </body>
-
 </html>
