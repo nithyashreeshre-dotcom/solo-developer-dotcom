@@ -1,338 +1,953 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>DEVHIVE — Publish Everything</title>
-  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet"/>
-  <style>
-    :root {
-      --bg: #0a0a0f;
-      --surface: #111118;
-      --card: #16161f;
-      --border: #2a2a3a;
-      --accent: #f0c040;
-      --accent2: #e05a5a;
-      --accent3: #5ae0b0;
-      --accent4: #5a90e0;
-      --text: #f0eeff;
-      --muted: #7a7a9a;
-      --font-head: 'Syne', sans-serif;
-      --font-body: 'DM Sans', sans-serif;
-    }
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    html { scroll-behavior: smooth; }
-    body {
-      background: var(--bg);
-      color: var(--text);
-      font-family: var(--font-body);
-      font-size: 15px;
-      line-height: 1.6;
-      overflow-x: hidden;
-    }
-    body::before {
-      content: '';
-      position: fixed;
-      inset: 0;
-      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E");
-      opacity: 0.03;
-      pointer-events: none;
-      z-index: 9999;
-    }
-    nav {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 20px 48px;
-      border-bottom: 1px solid var(--border);
-      position: sticky;
-      top: 0;
-      background: rgba(10,10,15,0.85);
-      backdrop-filter: blur(12px);
-      z-index: 100;
-    }
-    .logo {
-      font-family: var(--font-head);
-      font-weight: 800;
-      font-size: 1.5rem;
-      letter-spacing: -1px;
-      color: var(--text);
-      text-decoration: none;
-    }
-    .logo span { color: var(--accent); }
-    .nav-links { display: flex; gap: 32px; list-style: none; }
-    .nav-links a { color: var(--muted); text-decoration: none; font-size: 0.9rem; font-weight: 500; transition: color 0.2s; }
-    .nav-links a:hover { color: var(--text); }
-    .nav-cta { display: flex; gap: 12px; }
-    .btn { padding: 9px 20px; border-radius: 6px; font-family: var(--font-body); font-weight: 500; font-size: 0.88rem; cursor: pointer; text-decoration: none; transition: all 0.2s; border: none; display: inline-block; }
-    .btn-ghost { background: transparent; border: 1px solid var(--border); color: var(--text); }
-    .btn-ghost:hover { border-color: var(--accent); color: var(--accent); }
-    .btn-primary { background: var(--accent); color: #0a0a0f; font-weight: 700; }
-    .btn-primary:hover { background: #ffd060; transform: translateY(-1px); }
-    .hero { padding: 100px 48px 80px; position: relative; overflow: hidden; }
-    .hero-glow {
-      position: absolute; top: -100px; left: 50%; transform: translateX(-50%);
-      width: 700px; height: 400px;
-      background: radial-gradient(ellipse, rgba(240,192,64,0.12) 0%, transparent 70%);
-      pointer-events: none;
-    }
-    .hero-tag {
-      display: inline-block; font-size: 0.75rem; font-weight: 700; letter-spacing: 3px;
-      text-transform: uppercase; color: var(--accent); border: 1px solid rgba(240,192,64,0.3);
-      padding: 5px 14px; border-radius: 100px; margin-bottom: 28px;
-    }
-    .hero h1 {
-      font-family: var(--font-head); font-size: clamp(3rem, 7vw, 6rem); font-weight: 800;
-      line-height: 1.0; letter-spacing: -3px; max-width: 820px; margin-bottom: 28px;
-    }
-    .hero h1 em { font-style: normal; color: var(--accent); }
-    .hero p { font-size: 1.15rem; color: var(--muted); max-width: 520px; margin-bottom: 40px; font-weight: 300; }
-    .hero-actions { display: flex; gap: 14px; align-items: center; flex-wrap: wrap; }
-    .hero-actions .btn { padding: 13px 28px; font-size: 0.95rem; }
-    .hero-stats { display: flex; gap: 48px; margin-top: 72px; padding-top: 40px; border-top: 1px solid var(--border); }
-    .stat-num { font-family: var(--font-head); font-size: 2rem; font-weight: 800; color: var(--text); }
-    .stat-label { font-size: 0.82rem; color: var(--muted); margin-top: 2px; }
-    .section { padding: 72px 48px; }
-    .section-header { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 32px; }
-    .section-title { font-family: var(--font-head); font-size: 1.6rem; font-weight: 800; letter-spacing: -0.5px; }
-    .see-all { color: var(--accent); text-decoration: none; font-size: 0.85rem; font-weight: 500; transition: opacity 0.2s; }
-    .see-all:hover { opacity: 0.7; }
-    .categories { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 48px; }
-    .cat-pill {
-      display: flex; align-items: center; gap: 8px; padding: 10px 20px; border-radius: 100px;
-      border: 1px solid var(--border); background: var(--card); color: var(--muted);
-      font-size: 0.88rem; font-weight: 500; cursor: pointer; transition: all 0.2s; text-decoration: none;
-    }
-    .cat-pill:hover, .cat-pill.active { border-color: var(--accent); color: var(--accent); background: rgba(240,192,64,0.07); }
-    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
-    .card {
-      background: var(--card); border: 1px solid var(--border); border-radius: 12px;
-      overflow: hidden; transition: all 0.25s; cursor: pointer; text-decoration: none; color: inherit; display: block;
-    }
-    .card:hover { border-color: rgba(240,192,64,0.4); transform: translateY(-4px); box-shadow: 0 16px 40px rgba(0,0,0,0.4); }
-    .card-thumb-placeholder {
-      width: 100%; aspect-ratio: 16/9; display: flex; align-items: center;
-      justify-content: center; font-size: 3rem;
-    }
-    .card-body { padding: 16px; }
-    .card-type { font-size: 0.7rem; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 6px; }
-    .type-game { color: var(--accent2); }
-    .type-app  { color: var(--accent4); }
-    .type-video{ color: var(--accent3); }
-    .type-photo{ color: var(--accent);  }
-    .type-post { color: #c084fc; }
-    .card-title { font-family: var(--font-head); font-size: 1rem; font-weight: 700; margin-bottom: 6px; line-height: 1.3; }
-    .card-desc { font-size: 0.82rem; color: var(--muted); margin-bottom: 14px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-    .card-footer { display: flex; align-items: center; justify-content: space-between; }
-    .card-author { display: flex; align-items: center; gap: 8px; font-size: 0.8rem; color: var(--muted); }
-    .avatar { width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.65rem; font-weight: 700; color: #0a0a0f; }
-    .card-meta { display: flex; gap: 12px; font-size: 0.78rem; color: var(--muted); }
-    .featured-banner {
-      margin: 0 48px 72px; border-radius: 16px;
-      background: linear-gradient(135deg, #1a1a28 0%, #0f1a2e 50%, #1a0f1a 100%);
-      border: 1px solid var(--border); padding: 56px;
-      display: grid; grid-template-columns: 1fr 1fr; gap: 48px;
-      align-items: center; position: relative; overflow: hidden;
-    }
-    .featured-glow {
-      position: absolute; bottom: -60px; right: -60px; width: 300px; height: 300px;
-      background: radial-gradient(circle, rgba(90,224,176,0.15) 0%, transparent 70%);
-      pointer-events: none;
-    }
-    .featured-tag { font-size: 0.7rem; font-weight: 700; letter-spacing: 3px; text-transform: uppercase; color: var(--accent3); margin-bottom: 16px; }
-    .featured-title { font-family: var(--font-head); font-size: 2.4rem; font-weight: 800; letter-spacing: -1px; line-height: 1.1; margin-bottom: 16px; }
-    .featured-desc { color: var(--muted); font-size: 0.95rem; line-height: 1.7; margin-bottom: 28px; }
-    .featured-img {
-      border-radius: 10px; width: 100%; aspect-ratio: 16/10;
-      background: linear-gradient(135deg, #1a2a1a, #0f1f2e);
-      display: flex; align-items: center; justify-content: center;
-      font-size: 5rem; border: 1px solid var(--border);
-    }
-    .submit-section {
-      margin: 0 48px 72px; border-radius: 16px; background: var(--accent);
-      padding: 64px; text-align: center; position: relative; overflow: hidden;
-    }
-    .submit-section::before {
-      content: ''; position: absolute; top: -50%; left: -20%; width: 60%; height: 200%;
-      background: rgba(255,255,255,0.08); transform: rotate(-15deg); pointer-events: none;
-    }
-    .submit-section h2 { font-family: var(--font-head); font-size: 2.5rem; font-weight: 800; color: #0a0a0f; letter-spacing: -1px; margin-bottom: 12px; }
-    .submit-section p { color: rgba(10,10,15,0.65); font-size: 1rem; margin-bottom: 32px; max-width: 480px; margin-left: auto; margin-right: auto; }
-    .submit-section .btn { background: #0a0a0f; color: var(--accent); font-size: 1rem; padding: 14px 36px; border-radius: 8px; }
-    .submit-section .btn:hover { background: #1a1a2f; transform: translateY(-2px); }
-    footer {
-      border-top: 1px solid var(--border); padding: 40px 48px;
-      display: flex; align-items: center; justify-content: space-between;
-      color: var(--muted); font-size: 0.85rem;
-    }
-    @keyframes fadeUp { from { opacity: 0; transform: translateY(24px); } to { opacity: 1; transform: translateY(0); } }
-    .hero-tag    { animation: fadeUp 0.5s ease both; }
-    .hero h1     { animation: fadeUp 0.5s 0.1s ease both; }
-    .hero p      { animation: fadeUp 0.5s 0.2s ease both; }
-    .hero-actions{ animation: fadeUp 0.5s 0.3s ease both; }
-    .hero-stats  { animation: fadeUp 0.5s 0.4s ease both; }
-    @media (max-width: 768px) {
-      nav { padding: 16px 20px; }
-      .nav-links { display: none; }
-      .hero { padding: 60px 20px 48px; }
-      .section { padding: 48px 20px; }
-      .featured-banner { margin: 0 20px 48px; padding: 32px; grid-template-columns: 1fr; }
-      .submit-section { margin: 0 20px 48px; padding: 40px 24px; }
-      footer { padding: 28px 20px; flex-direction: column; gap: 12px; text-align: center; }
-      .hero-stats { gap: 24px; flex-wrap: wrap; }
-    }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Solo Developer – Publish Your Creations</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #f7f7f5;
+    --surface: #ffffff;
+    --surface2: #f0efec;
+    --border: #e2e1dc;
+    --border2: #cccbc5;
+    --text: #1a1a18;
+    --text2: #5a5a56;
+    --text3: #9a9a94;
+    --accent: #2563eb;
+    --accent-light: #eff6ff;
+    --accent-dark: #1d4ed8;
+    --green: #16a34a;
+    --green-light: #f0fdf4;
+    --amber: #d97706;
+    --amber-light: #fffbeb;
+    --red: #dc2626;
+    --red-light: #fef2f2;
+    --purple: #7c3aed;
+    --purple-light: #f5f3ff;
+    --radius-sm: 6px;
+    --radius: 10px;
+    --radius-lg: 16px;
+    --radius-xl: 24px;
+    --shadow-sm: 0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.06);
+    --shadow: 0 4px 12px rgba(0,0,0,0.08), 0 2px 4px rgba(0,0,0,0.05);
+    --shadow-lg: 0 12px 32px rgba(0,0,0,0.1), 0 4px 8px rgba(0,0,0,0.06);
+  }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+    min-height: 100vh;
+  }
+
+  /* NAV */
+  nav {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .nav-inner {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 2rem;
+    display: flex;
+    align-items: center;
+    gap: 2rem;
+    height: 60px;
+  }
+  .logo {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--text);
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    letter-spacing: -0.02em;
+  }
+  .logo-icon {
+    width: 28px;
+    height: 28px;
+    background: var(--accent);
+    border-radius: 7px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 14px;
+    font-weight: 600;
+  }
+  .nav-links {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    flex: 1;
+  }
+  .nav-links a {
+    font-size: 0.875rem;
+    color: var(--text2);
+    text-decoration: none;
+    padding: 6px 12px;
+    border-radius: var(--radius-sm);
+    transition: background 0.15s, color 0.15s;
+    font-weight: 400;
+  }
+  .nav-links a:hover { background: var(--surface2); color: var(--text); }
+  .nav-links a.active { color: var(--accent); font-weight: 500; }
+  .nav-search {
+    flex: 1;
+    max-width: 320px;
+    position: relative;
+    margin-left: auto;
+  }
+  .nav-search input {
+    width: 100%;
+    padding: 7px 12px 7px 36px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: var(--surface2);
+    font-size: 0.875rem;
+    color: var(--text);
+    font-family: inherit;
+    outline: none;
+    transition: border 0.15s, background 0.15s;
+  }
+  .nav-search input:focus { border-color: var(--accent); background: var(--surface); }
+  .nav-search svg { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); color: var(--text3); }
+  .nav-actions { display: flex; align-items: center; gap: 8px; }
+  .btn {
+    padding: 7px 16px;
+    border-radius: var(--radius);
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.15s;
+    border: none;
+    font-family: inherit;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .btn-ghost { background: transparent; color: var(--text2); border: 1px solid var(--border); }
+  .btn-ghost:hover { background: var(--surface2); color: var(--text); }
+  .btn-primary { background: var(--accent); color: white; }
+  .btn-primary:hover { background: var(--accent-dark); transform: translateY(-1px); box-shadow: var(--shadow-sm); }
+
+  /* HERO */
+  .hero {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 5rem 2rem 4rem;
+    text-align: center;
+  }
+  .hero-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--accent-light);
+    color: var(--accent);
+    font-size: 0.8rem;
+    font-weight: 500;
+    padding: 5px 12px;
+    border-radius: 999px;
+    margin-bottom: 1.5rem;
+    letter-spacing: 0.01em;
+  }
+  .hero h1 {
+    font-size: clamp(2rem, 5vw, 3.25rem);
+    font-weight: 600;
+    letter-spacing: -0.03em;
+    line-height: 1.15;
+    max-width: 680px;
+    margin: 0 auto 1.25rem;
+    color: var(--text);
+  }
+  .hero h1 span { color: var(--accent); }
+  .hero p {
+    font-size: 1.1rem;
+    color: var(--text2);
+    max-width: 500px;
+    margin: 0 auto 2.5rem;
+    line-height: 1.7;
+    font-weight: 300;
+  }
+  .hero-actions { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+  .btn-lg { padding: 11px 24px; font-size: 0.95rem; border-radius: var(--radius-lg); }
+  .hero-stats {
+    display: flex;
+    justify-content: center;
+    gap: 3rem;
+    margin-top: 4rem;
+    padding-top: 2.5rem;
+    border-top: 1px solid var(--border);
+  }
+  .stat-item { text-align: center; }
+  .stat-num { font-size: 1.75rem; font-weight: 600; color: var(--text); letter-spacing: -0.02em; }
+  .stat-label { font-size: 0.8rem; color: var(--text3); margin-top: 2px; }
+
+  /* CATEGORY TABS */
+  .section-wrap { max-width: 1200px; margin: 0 auto; padding: 0 2rem; }
+  .tabs-bar {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 1.5rem 0 0;
+    border-bottom: 1px solid var(--border);
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .tabs-bar::-webkit-scrollbar { display: none; }
+  .tab {
+    padding: 8px 16px;
+    font-size: 0.875rem;
+    color: var(--text2);
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    transition: all 0.15s;
+    white-space: nowrap;
+    font-weight: 400;
+    background: none;
+    border-top: none;
+    border-left: none;
+    border-right: none;
+    font-family: inherit;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .tab:hover { color: var(--text); }
+  .tab.active { color: var(--accent); border-bottom-color: var(--accent); font-weight: 500; }
+  .tab-icon { font-size: 15px; }
+  .tab-count {
+    background: var(--surface2);
+    color: var(--text3);
+    font-size: 0.7rem;
+    padding: 1px 6px;
+    border-radius: 999px;
+    font-weight: 500;
+  }
+  .tab.active .tab-count { background: var(--accent-light); color: var(--accent); }
+
+  /* FILTER BAR */
+  .filter-bar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 1.25rem 0;
+    flex-wrap: wrap;
+  }
+  .filter-bar span { font-size: 0.875rem; color: var(--text2); margin-right: 4px; }
+  .filter-chip {
+    padding: 5px 12px;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    font-size: 0.8rem;
+    color: var(--text2);
+    cursor: pointer;
+    transition: all 0.15s;
+    background: var(--surface);
+    font-family: inherit;
+    font-weight: 400;
+  }
+  .filter-chip:hover { border-color: var(--border2); color: var(--text); }
+  .filter-chip.active { background: var(--accent); border-color: var(--accent); color: white; }
+  .sort-select {
+    margin-left: auto;
+    padding: 5px 10px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    font-size: 0.8rem;
+    background: var(--surface);
+    color: var(--text2);
+    font-family: inherit;
+    outline: none;
+    cursor: pointer;
+  }
+
+  /* GRID */
+  .content-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1.25rem;
+    padding-bottom: 4rem;
+  }
+
+  /* CARD */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+  }
+  .card:hover { transform: translateY(-3px); box-shadow: var(--shadow-lg); border-color: var(--border2); }
+  .card-thumb {
+    width: 100%;
+    aspect-ratio: 16/10;
+    background: var(--surface2);
+    position: relative;
+    overflow: hidden;
+  }
+  .card-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .card-thumb-placeholder {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2.5rem;
+  }
+  .card-badge {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    font-size: 0.7rem;
+    font-weight: 500;
+    padding: 3px 8px;
+    border-radius: 999px;
+    backdrop-filter: blur(6px);
+  }
+  .badge-game { background: rgba(124,58,237,0.9); color: white; }
+  .badge-app { background: rgba(37,99,235,0.9); color: white; }
+  .badge-video { background: rgba(220,38,38,0.9); color: white; }
+  .badge-photo { background: rgba(217,119,6,0.9); color: white; }
+  .badge-post { background: rgba(22,163,74,0.9); color: white; }
+  .card-featured { position: absolute; top: 10px; right: 10px; background: rgba(255,200,0,0.95); color: #78350f; font-size: 0.65rem; font-weight: 600; padding: 3px 8px; border-radius: 999px; }
+  .card-body { padding: 1rem 1.1rem; flex: 1; display: flex; flex-direction: column; }
+  .card-author { display: flex; align-items: center; gap: 8px; margin-bottom: 0.6rem; }
+  .avatar {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.65rem;
+    font-weight: 600;
+    flex-shrink: 0;
+  }
+  .card-author-name { font-size: 0.8rem; color: var(--text3); }
+  .card-title { font-size: 0.95rem; font-weight: 600; color: var(--text); margin-bottom: 0.4rem; letter-spacing: -0.01em; line-height: 1.4; }
+  .card-desc { font-size: 0.825rem; color: var(--text2); line-height: 1.5; flex: 1; }
+  .card-tags { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 0.75rem; }
+  .tag { font-size: 0.7rem; color: var(--text2); background: var(--surface2); padding: 2px 8px; border-radius: 4px; border: 1px solid var(--border); }
+  .card-footer {
+    padding: 0.75rem 1.1rem;
+    border-top: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .card-stats { display: flex; align-items: center; gap: 12px; }
+  .stat { font-size: 0.75rem; color: var(--text3); display: flex; align-items: center; gap: 4px; }
+  .stat svg { width: 13px; height: 13px; }
+  .card-action {
+    font-size: 0.75rem;
+    color: var(--accent);
+    font-weight: 500;
+    text-decoration: none;
+    padding: 4px 10px;
+    border: 1px solid var(--accent);
+    border-radius: var(--radius-sm);
+    transition: all 0.15s;
+  }
+  .card-action:hover { background: var(--accent); color: white; }
+
+  /* FEATURED ROW */
+  .section-header {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    margin: 2rem 0 1.25rem;
+  }
+  .section-header h2 { font-size: 1.1rem; font-weight: 600; letter-spacing: -0.02em; }
+  .section-header a { font-size: 0.825rem; color: var(--accent); text-decoration: none; }
+  .section-header a:hover { text-decoration: underline; }
+  .featured-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0;
+    margin-bottom: 2rem;
+    transition: box-shadow 0.2s;
+    cursor: pointer;
+  }
+  .featured-card:hover { box-shadow: var(--shadow-lg); }
+  .featured-thumb {
+    background: #1e1b2e;
+    min-height: 240px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 5rem;
+    position: relative;
+  }
+  .featured-body { padding: 2rem; display: flex; flex-direction: column; justify-content: center; }
+  .featured-label { font-size: 0.75rem; font-weight: 500; color: var(--accent); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 0.75rem; }
+  .featured-title { font-size: 1.5rem; font-weight: 600; letter-spacing: -0.02em; margin-bottom: 0.75rem; line-height: 1.3; }
+  .featured-desc { font-size: 0.9rem; color: var(--text2); line-height: 1.6; margin-bottom: 1.5rem; }
+  .featured-meta { display: flex; align-items: center; gap: 1.5rem; }
+  .featured-stat { font-size: 0.8rem; color: var(--text3); display: flex; align-items: center; gap: 5px; }
+
+  /* UPLOAD MODAL */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.4);
+    z-index: 200;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal {
+    background: var(--surface);
+    border-radius: var(--radius-xl);
+    width: 100%;
+    max-width: 540px;
+    box-shadow: var(--shadow-lg);
+    overflow: hidden;
+  }
+  .modal-header {
+    padding: 1.5rem 1.75rem 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid var(--border);
+  }
+  .modal-header h3 { font-size: 1.05rem; font-weight: 600; }
+  .modal-close { background: none; border: none; cursor: pointer; color: var(--text3); padding: 4px; border-radius: 6px; }
+  .modal-close:hover { background: var(--surface2); color: var(--text); }
+  .modal-body { padding: 1.5rem 1.75rem; }
+  .type-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin-bottom: 1.5rem; }
+  .type-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    padding: 12px 6px;
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius);
+    cursor: pointer;
+    transition: all 0.15s;
+    background: var(--surface);
+    font-family: inherit;
+  }
+  .type-btn:hover { border-color: var(--accent); background: var(--accent-light); }
+  .type-btn.selected { border-color: var(--accent); background: var(--accent-light); }
+  .type-btn-icon { font-size: 1.5rem; }
+  .type-btn-label { font-size: 0.7rem; color: var(--text2); font-weight: 500; }
+  .type-btn.selected .type-btn-label { color: var(--accent); }
+  .form-group { margin-bottom: 1rem; }
+  .form-label { display: block; font-size: 0.8rem; font-weight: 500; color: var(--text2); margin-bottom: 6px; }
+  .form-input {
+    width: 100%;
+    padding: 9px 12px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    font-size: 0.875rem;
+    font-family: inherit;
+    color: var(--text);
+    background: var(--surface);
+    outline: none;
+    transition: border 0.15s;
+  }
+  .form-input:focus { border-color: var(--accent); }
+  textarea.form-input { resize: vertical; min-height: 80px; line-height: 1.5; }
+  .drop-zone {
+    border: 2px dashed var(--border);
+    border-radius: var(--radius-lg);
+    padding: 2rem;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.15s;
+    margin-bottom: 1rem;
+  }
+  .drop-zone:hover { border-color: var(--accent); background: var(--accent-light); }
+  .drop-zone-icon { font-size: 2rem; margin-bottom: 0.5rem; }
+  .drop-zone p { font-size: 0.85rem; color: var(--text2); }
+  .drop-zone span { color: var(--accent); font-weight: 500; }
+  .modal-footer { padding: 1rem 1.75rem 1.5rem; display: flex; gap: 10px; justify-content: flex-end; }
+
+  /* FOOTER */
+  footer {
+    background: var(--surface);
+    border-top: 1px solid var(--border);
+    padding: 3rem 2rem;
+    margin-top: 2rem;
+  }
+  .footer-inner { max-width: 1200px; margin: 0 auto; display: grid; grid-template-columns: 1.5fr repeat(3, 1fr); gap: 3rem; }
+  .footer-brand p { font-size: 0.85rem; color: var(--text2); margin-top: 0.75rem; line-height: 1.6; max-width: 240px; }
+  .footer-col h4 { font-size: 0.85rem; font-weight: 600; margin-bottom: 1rem; color: var(--text); }
+  .footer-col a { display: block; font-size: 0.825rem; color: var(--text2); text-decoration: none; margin-bottom: 0.5rem; transition: color 0.15s; }
+  .footer-col a:hover { color: var(--accent); }
+  .footer-bottom { max-width: 1200px; margin: 2rem auto 0; padding-top: 1.5rem; border-top: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+  .footer-bottom p { font-size: 0.8rem; color: var(--text3); }
+
+  @media (max-width: 768px) {
+    .hero { padding: 3rem 1.5rem 2.5rem; }
+    .hero-stats { gap: 1.5rem; }
+    .featured-card { grid-template-columns: 1fr; }
+    .featured-thumb { min-height: 160px; }
+    .footer-inner { grid-template-columns: 1fr 1fr; gap: 2rem; }
+    .nav-links { display: none; }
+    .type-grid { grid-template-columns: repeat(3, 1fr); }
+  }
+</style>
 </head>
 <body>
 
-  <nav>
-    <a href="#" class="logo">DEV<span>HIVE</span></a>
-    <ul class="nav-links">
-      <li><a href="#browse">Browse</a></li>
-      <li><a href="#games">Games</a></li>
-      <li><a href="#apps">Apps</a></li>
-      <li><a href="#community">Community</a></li>
-    </ul>
-    <div class="nav-cta">
-      <a href="#" class="btn btn-ghost">Log in</a>
-      <a href="#publish" class="btn btn-primary">Publish ↑</a>
+<!-- NAV -->
+<nav>
+  <div class="nav-inner">
+    <a href="#" class="logo">
+      <div class="logo-icon">SD</div>
+      Solo Developer
+    </a>
+    <div class="nav-links">
+      <a href="#" class="active">Discover</a>
+      <a href="#">Games</a>
+      <a href="#">Apps</a>
+      <a href="#">Videos</a>
+      <a href="#">Community</a>
     </div>
-  </nav>
+    <div class="nav-search">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      <input type="text" placeholder="Search games, apps, creators…">
+    </div>
+    <div class="nav-actions">
+      <button class="btn btn-ghost" onclick="document.getElementById('loginModal').classList.add('open')">Log in</button>
+      <button class="btn btn-primary" onclick="document.getElementById('uploadModal').classList.add('open')">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+        Publish
+      </button>
+    </div>
+  </div>
+</nav>
 
-  <section class="hero">
-    <div class="hero-glow"></div>
-    <div class="hero-tag">🚀 Open Platform for Creators</div>
-    <h1>Publish.<br/>Discover.<br/><em>Earn.</em></h1>
-    <p>DEVHIVE is the open platform where developers, artists, and creators share games, apps, videos, photos, and posts — and get rewarded for it.</p>
-    <div class="hero-actions">
-      <a href="#publish" class="btn btn-primary">Start Publishing →</a>
-      <a href="#browse" class="btn btn-ghost">Browse Creations</a>
-    </div>
-    <div class="hero-stats">
-      <div><div class="stat-num">1.2K+</div><div class="stat-label">Creators</div></div>
-      <div><div class="stat-num">4.8K+</div><div class="stat-label">Published Works</div></div>
-      <div><div class="stat-num">Free</div><div class="stat-label">To Join</div></div>
-    </div>
-  </section>
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-badge">
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+    The home for solo creators
+  </div>
+  <h1>Publish your work.<br><span>Reach the world.</span></h1>
+  <p>Share your games, apps, videos, photos, and posts. Built for indie creators who make things on their own terms.</p>
+  <div class="hero-actions">
+    <button class="btn btn-primary btn-lg" onclick="document.getElementById('uploadModal').classList.add('open')">
+      Start Publishing — it's free
+    </button>
+    <button class="btn btn-ghost btn-lg">Browse Creations</button>
+  </div>
+  <div class="hero-stats">
+    <div class="stat-item"><div class="stat-num">12,400+</div><div class="stat-label">Creators</div></div>
+    <div class="stat-item"><div class="stat-num">48,000+</div><div class="stat-label">Projects Published</div></div>
+    <div class="stat-item"><div class="stat-num">2.1M+</div><div class="stat-label">Downloads</div></div>
+    <div class="stat-item"><div class="stat-num">100%</div><div class="stat-label">Free to Publish</div></div>
+  </div>
+</div>
 
-  <div class="featured-banner">
-    <div class="featured-glow"></div>
-    <div>
-      <div class="featured-tag">✦ Editor's Pick</div>
+<!-- MAIN -->
+<div class="section-wrap">
+
+  <!-- TABS -->
+  <div class="tabs-bar" id="tabsBar">
+    <button class="tab active" data-tab="all" onclick="switchTab(this, 'all')">
+      <span class="tab-icon">✦</span> All <span class="tab-count">48k</span>
+    </button>
+    <button class="tab" data-tab="games" onclick="switchTab(this, 'games')">
+      <span class="tab-icon">🎮</span> Games <span class="tab-count">18k</span>
+    </button>
+    <button class="tab" data-tab="apps" onclick="switchTab(this, 'apps')">
+      <span class="tab-icon">📱</span> Apps <span class="tab-count">9k</span>
+    </button>
+    <button class="tab" data-tab="videos" onclick="switchTab(this, 'videos')">
+      <span class="tab-icon">🎬</span> Videos <span class="tab-count">11k</span>
+    </button>
+    <button class="tab" data-tab="photos" onclick="switchTab(this, 'photos')">
+      <span class="tab-icon">📷</span> Photos <span class="tab-count">7k</span>
+    </button>
+    <button class="tab" data-tab="posts" onclick="switchTab(this, 'posts')">
+      <span class="tab-icon">✏️</span> Posts <span class="tab-count">3k</span>
+    </button>
+  </div>
+
+  <!-- FILTER -->
+  <div class="filter-bar">
+    <span>Filter:</span>
+    <button class="filter-chip active">All time</button>
+    <button class="filter-chip">This week</button>
+    <button class="filter-chip">New</button>
+    <button class="filter-chip">Free</button>
+    <button class="filter-chip">Open source</button>
+    <select class="sort-select">
+      <option>Sort: Most popular</option>
+      <option>Sort: Newest</option>
+      <option>Sort: Top rated</option>
+      <option>Sort: Most downloaded</option>
+    </select>
+  </div>
+
+  <!-- FEATURED -->
+  <div class="section-header">
+    <h2>⭐ Featured this week</h2>
+    <a href="#">View all →</a>
+  </div>
+  <div class="featured-card">
+    <div class="featured-thumb" style="background: linear-gradient(135deg, #1e1b2e 0%, #2d1b69 50%, #0f172a 100%);">
+      <span style="font-size: 5rem; filter: drop-shadow(0 4px 16px rgba(0,0,0,0.5));">🌲</span>
+    </div>
+    <div class="featured-body">
+      <div class="featured-label">🎮 Game · Horror · Survival</div>
       <div class="featured-title">Run From Epsteins</div>
-      <div class="featured-desc">A psychological horror survival game set in a terrifying atmospheric forest. Can you make it out alive? One of the most chilling indie games on the platform.</div>
-      <div style="display:flex;gap:12px;flex-wrap:wrap;">
-        <a href="https://shreevatsa.itch.io/run-from-epstein" target="_blank" class="btn btn-primary">Play Now →</a>
-        <a href="#" class="btn btn-ghost">View Profile</a>
+      <div class="featured-desc">A psychological horror survival game set in a terrifying atmospheric forest. Fight your fears to survive the night.</div>
+      <div class="featured-meta">
+        <div class="featured-stat">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+          4,230 reviews
+        </div>
+        <div class="featured-stat">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+          12,800 downloads
+        </div>
+        <div class="featured-stat" style="color: var(--accent);">by Shreevatsa ✓</div>
       </div>
     </div>
-    <div class="featured-img">🌲</div>
   </div>
 
-  <section class="section" id="browse">
-    <div class="section-header">
-      <div class="section-title">Browse Everything</div>
-      <a href="#" class="see-all">See all →</a>
-    </div>
-    <div class="categories">
-      <a href="#" class="cat-pill active"><span>✦</span> All</a>
-      <a href="#" class="cat-pill"><span>🎮</span> Games</a>
-      <a href="#" class="cat-pill"><span>📱</span> Apps</a>
-      <a href="#" class="cat-pill"><span>🎬</span> Videos</a>
-      <a href="#" class="cat-pill"><span>📷</span> Photos</a>
-      <a href="#" class="cat-pill"><span>✍️</span> Posts</a>
-      <a href="#" class="cat-pill"><span>🎵</span> Music</a>
-    </div>
-    <div class="grid">
-      <a href="https://nithyashreeshre-dotcom.github.io/solo-developer-dotcom/" target="_blank" class="card">
-        <div class="card-thumb-placeholder" style="background:linear-gradient(135deg,#1a0f1f,#2a0f2f);">🎮</div>
-        <div class="card-body">
-          <div class="card-type type-game">Game</div>
-          <div class="card-title">Run From Epsteins</div>
-          <div class="card-desc">Psychological horror survival game set deep in an atmospheric forest.</div>
-          <div class="card-footer">
-            <div class="card-author"><div class="avatar" style="background:var(--accent2);">S</div>Shreevatsa</div>
-            <div class="card-meta"><span>⭐ 4.9</span><span>↓ 820</span></div>
-          </div>
-        </div>
-      </a>
-      <a href="#" class="card">
-        <div class="card-thumb-placeholder" style="background:linear-gradient(135deg,#0f1a2e,#0f2a1a);">📱</div>
-        <div class="card-body">
-          <div class="card-type type-app">App</div>
-          <div class="card-title">TaskFlow — Focus Timer</div>
-          <div class="card-desc">A minimal Pomodoro-based productivity app built in Python with a clean UI.</div>
-          <div class="card-footer">
-            <div class="card-author"><div class="avatar" style="background:var(--accent4);">A</div>arjundev</div>
-            <div class="card-meta"><span>⭐ 4.7</span><span>↓ 340</span></div>
-          </div>
-        </div>
-      </a>
-      <a href="#" class="card">
-        <div class="card-thumb-placeholder" style="background:linear-gradient(135deg,#1a1f0f,#0f1a0f);">🎬</div>
-        <div class="card-body">
-          <div class="card-type type-video">Video</div>
-          <div class="card-title">Building a Game Engine from Scratch</div>
-          <div class="card-desc">Full devlog series — how I coded collision, physics, and rendering in C++.</div>
-          <div class="card-footer">
-            <div class="card-author"><div class="avatar" style="background:var(--accent3);">N</div>nitro_coder</div>
-            <div class="card-meta"><span>👁 12.4K</span><span>❤ 890</span></div>
-          </div>
-        </div>
-      </a>
-      <a href="#" class="card">
-        <div class="card-thumb-placeholder" style="background:linear-gradient(135deg,#1f1a0f,#2f200f);">📷</div>
-        <div class="card-body">
-          <div class="card-type type-photo">Photo</div>
-          <div class="card-title">Midnight City — Photo Series</div>
-          <div class="card-desc">Urban nightscapes captured across Bangalore, Mumbai and Hyderabad.</div>
-          <div class="card-footer">
-            <div class="card-author"><div class="avatar" style="background:var(--accent);">P</div>priya.lens</div>
-            <div class="card-meta"><span>👁 5.2K</span><span>❤ 412</span></div>
-          </div>
-        </div>
-      </a>
-      <a href="#" class="card">
-        <div class="card-thumb-placeholder" style="background:linear-gradient(135deg,#1a0f2e,#2e0f2e);">✍️</div>
-        <div class="card-body">
-          <div class="card-type type-post">Post</div>
-          <div class="card-title">How I Learned to Code in 3 Months</div>
-          <div class="card-desc">My honest journey from zero to building my first game as a pre-college student.</div>
-          <div class="card-footer">
-            <div class="card-author"><div class="avatar" style="background:#c084fc;">R</div>ravi.builds</div>
-            <div class="card-meta"><span>👁 8.9K</span><span>❤ 621</span></div>
-          </div>
-        </div>
-      </a>
-      <a href="#" class="card">
-        <div class="card-thumb-placeholder" style="background:linear-gradient(135deg,#0f1f2e,#0f0f2e);">📱</div>
-        <div class="card-body">
-          <div class="card-type type-app">App</div>
-          <div class="card-title">BudgetBro — Expense Tracker</div>
-          <div class="card-desc">Track expenses, set budgets, and visualize spending — all offline, no account needed.</div>
-          <div class="card-footer">
-            <div class="card-author"><div class="avatar" style="background:var(--accent4);">K</div>kartik_dev</div>
-            <div class="card-meta"><span>⭐ 4.8</span><span>↓ 200</span></div>
-          </div>
-        </div>
-      </a>
-    </div>
-  </section>
-
-  <div class="submit-section" id="publish">
-    <h2>Your turn to publish.</h2>
-    <p>Share your game, app, video, photo, or post with thousands of creators and earn from your work.</p>
-    <a href="mailto:hello@devhive.com" class="btn">Submit Your Work ↑</a>
+  <!-- GRID -->
+  <div class="section-header">
+    <h2>Trending now</h2>
+    <a href="#">See all →</a>
   </div>
+  <div class="content-grid" id="contentGrid">
 
-  <footer>
-    <div><strong style="color:var(--text);font-family:'Syne',sans-serif;">DEV<span style="color:var(--accent)">HIVE</span></strong> — Made with ❤️ by Shreevatsa</div>
-    <div style="display:flex;gap:24px;">
-      <a href="#" style="color:var(--muted);text-decoration:none;">About</a>
-      <a href="#" style="color:var(--muted);text-decoration:none;">Contact</a>
-      <a href="https://github.com/nithyashreeshre-dotcom" target="_blank" style="color:var(--muted);text-decoration:none;">GitHub</a>
+    <!-- Card 1 -->
+    <div class="card">
+      <div class="card-thumb">
+        <div class="card-thumb-placeholder" style="background: linear-gradient(135deg, #0f172a, #1e3a5f);">🚀</div>
+        <span class="card-badge badge-game">Game</span>
+      </div>
+      <div class="card-body">
+        <div class="card-author">
+          <div class="avatar" style="background: #eff6ff; color: #1d4ed8;">AK</div>
+          <span class="card-author-name">ArjunKodes</span>
+        </div>
+        <div class="card-title">Void Wanderer</div>
+        <div class="card-desc">A minimalist space exploration game. Drift through procedurally generated galaxies with no HUD, just you and the stars.</div>
+        <div class="card-tags">
+          <span class="tag">Unity</span><span class="tag">Space</span><span class="tag">Free</span>
+        </div>
+      </div>
+      <div class="card-footer">
+        <div class="card-stats">
+          <span class="stat">❤️ 842</span>
+          <span class="stat">⬇ 5.2k</span>
+        </div>
+        <a href="#" class="card-action">View</a>
+      </div>
     </div>
-  </footer>
 
+    <!-- Card 2 -->
+    <div class="card">
+      <div class="card-thumb">
+        <div class="card-thumb-placeholder" style="background: linear-gradient(135deg, #052e16, #14532d);">🌿</div>
+        <span class="card-badge badge-app">App</span>
+        <span class="card-featured">New</span>
+      </div>
+      <div class="card-body">
+        <div class="card-author">
+          <div class="avatar" style="background: #f0fdf4; color: #15803d;">PR</div>
+          <span class="card-author-name">PriyaRaval</span>
+        </div>
+        <div class="card-title">FocusForest</div>
+        <div class="card-desc">A Pomodoro timer app that grows a virtual forest as you focus. Built with Flutter, works on Android & iOS.</div>
+        <div class="card-tags">
+          <span class="tag">Flutter</span><span class="tag">Productivity</span>
+        </div>
+      </div>
+      <div class="card-footer">
+        <div class="card-stats">
+          <span class="stat">❤️ 1.2k</span>
+          <span class="stat">⬇ 8.9k</span>
+        </div>
+        <a href="#" class="card-action">View</a>
+      </div>
+    </div>
+
+    <!-- Card 3 -->
+    <div class="card">
+      <div class="card-thumb">
+        <div class="card-thumb-placeholder" style="background: linear-gradient(135deg, #450a0a, #7f1d1d);">🎬</div>
+        <span class="card-badge badge-video">Video</span>
+      </div>
+      <div class="card-body">
+        <div class="card-author">
+          <div class="avatar" style="background: #fef2f2; color: #b91c1c;">SN</div>
+          <span class="card-author-name">SkyeNarayan</span>
+        </div>
+        <div class="card-title">Building a Game in 48 Hours</div>
+        <div class="card-desc">Full devlog of my game jam entry — from idea to submission, tools, mistakes, and what I'd do differently.</div>
+        <div class="card-tags">
+          <span class="tag">Devlog</span><span class="tag">Game Jam</span>
+        </div>
+      </div>
+      <div class="card-footer">
+        <div class="card-stats">
+          <span class="stat">❤️ 3.1k</span>
+          <span class="stat">▶ 41k views</span>
+        </div>
+        <a href="#" class="card-action">Watch</a>
+      </div>
+    </div>
+
+    <!-- Card 4 -->
+    <div class="card">
+      <div class="card-thumb">
+        <div class="card-thumb-placeholder" style="background: linear-gradient(135deg, #1c1917, #44403c);">📷</div>
+        <span class="card-badge badge-photo">Photo</span>
+      </div>
+      <div class="card-body">
+        <div class="card-author">
+          <div class="avatar" style="background: #fffbeb; color: #b45309;">DM</div>
+          <span class="card-author-name">DevMehta_lens</span>
+        </div>
+        <div class="card-title">Urban Decay Series — Vol. 3</div>
+        <div class="card-desc">Abandoned buildings, broken concrete, and the beauty of what remains. Shot on film in Pune, 2024.</div>
+        <div class="card-tags">
+          <span class="tag">Photography</span><span class="tag">Urban</span>
+        </div>
+      </div>
+      <div class="card-footer">
+        <div class="card-stats">
+          <span class="stat">❤️ 590</span>
+          <span class="stat">👁 7.3k</span>
+        </div>
+        <a href="#" class="card-action">View</a>
+      </div>
+    </div>
+
+    <!-- Card 5 -->
+    <div class="card">
+      <div class="card-thumb">
+        <div class="card-thumb-placeholder" style="background: linear-gradient(135deg, #1e1b4b, #3730a3);">🧩</div>
+        <span class="card-badge badge-game">Game</span>
+        <span class="card-featured">⭐ Top</span>
+      </div>
+      <div class="card-body">
+        <div class="card-author">
+          <div class="avatar" style="background: #f5f3ff; color: #6d28d9;">TS</div>
+          <span class="card-author-name">TiaSharma_dev</span>
+        </div>
+        <div class="card-title">GridLock Puzzle</div>
+        <div class="card-desc">200+ handcrafted logic puzzles. No ads, no timers, no stress. Just clean, satisfying puzzle solving in your browser.</div>
+        <div class="card-tags">
+          <span class="tag">HTML5</span><span class="tag">Puzzle</span><span class="tag">Free</span>
+        </div>
+      </div>
+      <div class="card-footer">
+        <div class="card-stats">
+          <span class="stat">❤️ 2.4k</span>
+          <span class="stat">⬇ 19k</span>
+        </div>
+        <a href="#" class="card-action">Play</a>
+      </div>
+    </div>
+
+    <!-- Card 6 -->
+    <div class="card">
+      <div class="card-thumb">
+        <div class="card-thumb-placeholder" style="background: linear-gradient(135deg, #0c4a6e, #0369a1);">✏️</div>
+        <span class="card-badge badge-post">Post</span>
+      </div>
+      <div class="card-body">
+        <div class="card-author">
+          <div class="avatar" style="background: #e0f2fe; color: #0369a1;">RM</div>
+          <span class="card-author-name">RajMohan_io</span>
+        </div>
+        <div class="card-title">Why I quit my job to make games full-time</div>
+        <div class="card-desc">After 6 years in fintech, I took the leap. Here's my honest breakdown of revenue, expenses, and mental health 12 months in.</div>
+        <div class="card-tags">
+          <span class="tag">Indie dev</span><span class="tag">Story</span>
+        </div>
+      </div>
+      <div class="card-footer">
+        <div class="card-stats">
+          <span class="stat">❤️ 4.8k</span>
+          <span class="stat">💬 312</span>
+        </div>
+        <a href="#" class="card-action">Read</a>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- UPLOAD MODAL -->
+<div class="modal-overlay" id="uploadModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>Publish your creation</h3>
+      <button class="modal-close" onclick="document.getElementById('uploadModal').classList.remove('open')">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <div class="form-label">What are you publishing?</div>
+        <div class="type-grid">
+          <button class="type-btn selected" onclick="selectType(this)">
+            <span class="type-btn-icon">🎮</span>
+            <span class="type-btn-label">Game</span>
+          </button>
+          <button class="type-btn" onclick="selectType(this)">
+            <span class="type-btn-icon">📱</span>
+            <span class="type-btn-label">App</span>
+          </button>
+          <button class="type-btn" onclick="selectType(this)">
+            <span class="type-btn-icon">🎬</span>
+            <span class="type-btn-label">Video</span>
+          </button>
+          <button class="type-btn" onclick="selectType(this)">
+            <span class="type-btn-icon">📷</span>
+            <span class="type-btn-label">Photo</span>
+          </button>
+          <button class="type-btn" onclick="selectType(this)">
+            <span class="type-btn-icon">✏️</span>
+            <span class="type-btn-label">Post</span>
+          </button>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Title</label>
+        <input type="text" class="form-input" placeholder="Give your creation a name…">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Description</label>
+        <textarea class="form-input" placeholder="Tell people what makes it special…"></textarea>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Tags (comma separated)</label>
+        <input type="text" class="form-input" placeholder="unity, horror, free, mobile…">
+      </div>
+      <div class="drop-zone" onclick="this.querySelector('input').click()">
+        <div class="drop-zone-icon">☁️</div>
+        <p><span>Click to upload</span> or drag and drop a file, thumbnail, or link</p>
+        <p style="font-size: 0.75rem; color: var(--text3); margin-top: 4px;">Supports ZIP, APK, MP4, PNG, JPG, PDF — up to 500MB</p>
+        <input type="file" style="display:none">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="document.getElementById('uploadModal').classList.remove('open')">Cancel</button>
+      <button class="btn btn-primary">Publish →</button>
+    </div>
+  </div>
+</div>
+
+<!-- LOGIN MODAL -->
+<div class="modal-overlay" id="loginModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>Join Solo Developer</h3>
+      <button class="modal-close" onclick="document.getElementById('loginModal').classList.remove('open')">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label class="form-label">Email</label>
+        <input type="email" class="form-input" placeholder="you@example.com">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Password</label>
+        <input type="password" class="form-input" placeholder="••••••••">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="document.getElementById('loginModal').classList.remove('open')">Cancel</button>
+      <button class="btn btn-primary" style="flex:1">Sign in</button>
+    </div>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-inner">
+    <div class="footer-brand">
+      <div class="logo">
+        <div class="logo-icon">SD</div>
+        Solo Developer
+      </div>
+      <p>The publishing platform for independent creators. Make things. Ship them. Find your audience.</p>
+    </div>
+    <div class="footer-col">
+      <h4>Platform</h4>
+      <a href="#">Browse Games</a>
+      <a href="#">Browse Apps</a>
+      <a href="#">Browse Videos</a>
+      <a href="#">Browse Photos</a>
+      <a href="#">Posts & Devlogs</a>
+    </div>
+    <div class="footer-col">
+      <h4>Creators</h4>
+      <a href="#">Start Publishing</a>
+      <a href="#">Creator Dashboard</a>
+      <a href="#">Pricing</a>
+      <a href="#">Analytics</a>
+      <a href="#">Creator FAQ</a>
+    </div>
+    <div class="footer-col">
+      <h4>Company</h4>
+      <a href="#">About</a>
+      <a href="#">Blog</a>
+      <a href="#">Careers</a>
+      <a href="#">Privacy</a>
+      <a href="#">Terms</a>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <p>© 2025 Solo Developer · Built for indie creators everywhere</p>
+    <p>Made with ♥ by Shreevatsa</p>
+  </div>
+</footer>
+
+<script>
+  function switchTab(el, tab) {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    el.classList.add('active');
+  }
+  function selectType(el) {
+    document.querySelectorAll('.type-btn').forEach(b => b.classList.remove('selected'));
+    el.classList.add('selected');
+  }
+  document.querySelectorAll('.filter-chip').forEach(chip => {
+    chip.addEventListener('click', function() {
+      document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+      this.classList.add('active');
+    });
+  });
+  document.querySelectorAll('.modal-overlay').forEach(overlay => {
+    overlay.addEventListener('click', function(e) {
+      if (e.target === this) this.classList.remove('open');
+    });
+  });
+</script>
 </body>
 </html>
