@@ -1976,9 +1976,15 @@ footer { background: var(--surface); border-top: 1px solid var(--border); paddin
       const formData = new FormData();
       formData.append('file', file);
       formData.append('upload_preset', UPLOAD_PRESET);
-      formData.append('folder', 'solo-developer/projects');
+      // Note: folder is set inside the preset settings on Cloudinary dashboard
 
       const xhr = new XMLHttpRequest();
+      xhr.timeout = 60000; // 60 second timeout
+
+      xhr.addEventListener('timeout', () => {
+        showToast('Upload timed out. Check your connection.', 'error');
+        prog.style.display = 'none';
+      });
 
       // Live progress bar
       xhr.upload.addEventListener('progress', (e) => {
