@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -1834,21 +1835,18 @@ footer { background: var(--surface); border-top: 1px solid var(--border); paddin
       const skeleton = document.getElementById('skeletonCard');
 
       try {
-        // Build query — newest first, max 20
+        // Simple query — no composite index needed
         let q;
         if (filterType === 'all') {
           q = query(
             collection(db, 'projects'),
-            where('status', '==', 'published'),
             orderBy('createdAt', 'desc'),
             limit(20)
           );
         } else {
           q = query(
             collection(db, 'projects'),
-            where('status', '==', 'published'),
             where('type', '==', filterType),
-            orderBy('createdAt', 'desc'),
             limit(20)
           );
         }
