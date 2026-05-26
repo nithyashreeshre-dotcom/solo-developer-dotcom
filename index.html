@@ -983,7 +983,7 @@ footer { background: var(--surface); border-top: 1px solid var(--border); paddin
         <div class="step-num">2</div>
         <div class="step-icon">⬆️</div>
         <div class="step-title">Upload your creation</div>
-        <div class="step-desc">Games, apps, videos, photos, posts — upload a file or drop in a link. Files go securely to Firebase Storage.</div>
+        <div class="step-desc">Games, apps, videos, photos, posts — upload a file or drop in a link. Files go to Cloudinary for free storage.</div>
       </div>
       <div class="step-item">
         <div class="step-num">3</div>
@@ -1444,7 +1444,7 @@ footer { background: var(--surface); border-top: 1px solid var(--border); paddin
       <div class="feature-item">
         <div class="feature-icon-wrap">🔒</div>
         <div class="feature-title">Secure auth & file storage</div>
-        <div class="feature-desc">Accounts are protected by Firebase Authentication. Files upload directly to Firebase Storage — encrypted, fast, and globally distributed.</div>
+        <div class="feature-desc">Accounts are protected by Firebase Authentication. Files upload directly to Cloudinary — free, fast, and globally distributed with CDN delivery.</div>
       </div>
       <div class="feature-item">
         <div class="feature-icon-wrap">🌍</div>
@@ -1527,11 +1527,11 @@ footer { background: var(--surface); border-top: 1px solid var(--border); paddin
         </div>
       </div>
 
-      <!-- Firebase Storage Upload Zone -->
+      <!-- Cloudinary Upload Zone -->
       <div class="dropzone" id="dropzone" ondragover="dragOver(event)" ondragleave="dragLeave(event)" ondrop="dropFile(event)" onclick="document.getElementById('fileInput').click()">
         <div class="dropzone-icon">☁️</div>
         <p><em>Click to browse</em> or drag and drop your files here</p>
-        <p class="dropzone-sub">Uploaded securely to Firebase Storage · ZIP, APK, EXE, MP4, PNG, JPG, PDF, MP3 — up to 500 MB</p>
+        <p class="dropzone-sub">Uploaded free via Cloudinary · ZIP, APK, EXE, MP4, PNG, JPG, PDF, MP3 — up to 100 MB per file</p>
         <input type="file" id="fileInput" style="display:none" onchange="fileSelected(this)">
         <div class="upload-progress" id="uploadProgress">
           <p style="font-size:0.78rem;color:var(--text2)" id="uploadFilename">Uploading…</p>
@@ -1725,7 +1725,7 @@ footer { background: var(--surface); border-top: 1px solid var(--border); paddin
         <div class="logo-mark">SD</div>
         Solo Developer
       </div>
-      <p class="footer-tagline">An open platform for indie creators. Publish games, apps, videos, photos, and posts. Powered by Firebase.</p>
+      <p class="footer-tagline">An open platform for indie creators. Publish games, apps, videos, photos, and posts. Powered by Firebase + Cloudinary.</p>
       <div class="footer-social">
         <a href="#" class="social-icon" onclick="showToast('Twitter/X coming soon!','info');return false;" title="Twitter/X">𝕏</a>
         <a href="#" class="social-icon" onclick="showToast('Discord coming soon!','info');return false;" title="Discord">💬</a>
@@ -1796,12 +1796,7 @@ footer { background: var(--surface); border-top: 1px solid var(--border); paddin
     setDoc,
     getDoc
   }                                               from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-  import {
-    getStorage,
-    ref,
-    uploadBytesResumable,
-    getDownloadURL
-  }                                               from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
+  // Storage handled by Cloudinary (no Firebase Storage needed)
 
   // ── Firebase config ───────────────────────────────────────────────────────
   const firebaseConfig = {
@@ -1819,7 +1814,7 @@ footer { background: var(--surface); border-top: 1px solid var(--border); paddin
   const analytics = getAnalytics(app);
   const auth      = getAuth(app);
   const db        = getFirestore(app);
-  const storage   = getStorage(app);
+  // Cloudinary handles storage — no Firebase Storage init needed
   const gProvider = new GoogleAuthProvider();
 
   // Expose to window so non-module script can call them
@@ -1961,38 +1956,61 @@ footer { background: var(--surface); border-top: 1px solid var(--border); paddin
       logEvent(analytics, 'logout');
     },
 
-    // Upload file to Firebase Storage
+    // Upload file to Cloudinary (free, no card needed)
     uploadFile(file) {
       if (!file) return;
-      const path    = `projects/${Date.now()}_${file.name}`;
-      const fileRef = ref(storage, path);
-      const task    = uploadBytesResumable(fileRef, file);
 
-      const prog     = document.getElementById('uploadProgress');
-      const bar      = document.getElementById('progressBar');
-      const nameEl   = document.getElementById('uploadFilename');
-      const infoEl   = document.getElementById('uploadInfo');
+      const CLOUD_NAME    = 'dil3ndnlq';
+      const UPLOAD_PRESET = 'wxrxsgt5';
+
+      const prog   = document.getElementById('uploadProgress');
+      const bar    = document.getElementById('progressBar');
+      const nameEl = document.getElementById('uploadFilename');
+      const infoEl = document.getElementById('uploadInfo');
+
       prog.style.display = 'block';
       nameEl.textContent = `Uploading: ${file.name}`;
       bar.style.width    = '0%';
+      infoEl.classList.remove('show');
 
-      task.on('state_changed',
-        (snap) => {
-          const pct = (snap.bytesTransferred / snap.totalBytes) * 100;
-          bar.style.width = pct + '%';
-        },
-        (err) => {
-          showToast('Upload failed: ' + err.message, 'error');
-        },
-        async () => {
-          uploadedFileURL = await getDownloadURL(task.snapshot.ref);
-          nameEl.textContent = `✓ ${file.name} — ready`;
-          infoEl.textContent = `✓ Uploaded to Firebase Storage`;
-          infoEl.classList.add('show');
-          showToast('File uploaded securely!', 'success');
-          logEvent(analytics, 'file_upload', { name: file.name, size: file.size });
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('upload_preset', UPLOAD_PRESET);
+      formData.append('folder', 'solo-developer/projects');
+
+      const xhr = new XMLHttpRequest();
+
+      // Live progress bar
+      xhr.upload.addEventListener('progress', (e) => {
+        if (e.lengthComputable) {
+          bar.style.width = ((e.loaded / e.total) * 100) + '%';
         }
-      );
+      });
+
+      xhr.addEventListener('load', () => {
+        if (xhr.status === 200) {
+          const res    = JSON.parse(xhr.responseText);
+          uploadedFileURL        = res.secure_url;
+          nameEl.textContent     = `✓ ${file.name} — ready`;
+          infoEl.textContent     = `✓ Uploaded to Cloudinary · ${(file.size/1024/1024).toFixed(1)} MB · Free storage`;
+          infoEl.classList.add('show');
+          showToast('File uploaded successfully! 🎉', 'success');
+          logEvent(analytics, 'file_upload', { name: file.name, size: file.size, provider: 'cloudinary' });
+        } else {
+          const err = JSON.parse(xhr.responseText);
+          showToast('Upload failed: ' + (err.error?.message || 'Unknown error'), 'error');
+          prog.style.display = 'none';
+        }
+      });
+
+      xhr.addEventListener('error', () => {
+        showToast('Upload error. Check your connection and try again.', 'error');
+        prog.style.display = 'none';
+      });
+
+      // Cloudinary auto endpoint handles images, videos, audio, raw files
+      xhr.open('POST', `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/auto/upload`);
+      xhr.send(formData);
     },
 
     // Publish project to Firestore
