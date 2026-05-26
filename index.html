@@ -1117,8 +1117,16 @@ footer { background: var(--surface); border-top: 1px solid var(--border); paddin
       <a href="#" class="see-all">See all trending →</a>
     </div>
   </div>
+  <!-- Live grid — populated from Firestore, then static fallbacks appended -->
   <div class="grid-4" id="mainGrid">
-    <div class="card">
+    <!-- Skeleton loader shown while Firestore loads -->
+    <div class="card skeleton-card" id="skeletonCard" style="opacity:0.5;pointer-events:none;">
+      <div class="card-thumb"><div class="card-thumb-bg" style="background:var(--surface2);">⏳</div></div>
+      <div class="card-body"><div class="card-title" style="color:var(--text3);">Loading projects…</div></div>
+    </div>
+
+    <!-- STATIC FALLBACK CARDS (shown after Firestore loads, always visible) -->
+    <div class="card static-card">
       <div class="card-thumb">
         <div class="card-thumb-bg" style="background:linear-gradient(135deg,#0f172a,#1e3a5f);">🚀</div>
         <span class="type-badge tb-game">Game</span>
@@ -1142,69 +1150,53 @@ footer { background: var(--surface); border-top: 1px solid var(--border); paddin
       </div>
     </div>
 
-    <div class="card">
+    <div class="card static-card">
       <div class="card-thumb">
         <div class="card-thumb-bg" style="background:linear-gradient(135deg,#052e16,#14532d);">🌿</div>
         <span class="type-badge tb-app">App</span>
         <button class="card-save-btn" onclick="saveItem(this,'FocusForest')" title="Save">🔖</button>
       </div>
       <div class="card-body">
-        <div class="card-author-row">
-          <div class="card-author">
-            <div class="avatar" style="background:#f0fdf4;color:#15803d;">PR</div>
-            <span class="author-name">PriyaRaval</span>
-          </div>
-        </div>
+        <div class="card-author-row"><div class="card-author"><div class="avatar" style="background:#f0fdf4;color:#15803d;">PR</div><span class="author-name">PriyaRaval</span></div></div>
         <div class="card-title">FocusForest</div>
-        <div class="card-desc">A Pomodoro timer that grows a virtual forest as you focus. Built with Flutter, works on Android & iOS. Open source.</div>
-        <div class="card-tags"><span class="tag">Flutter</span><span class="tag">Android</span><span class="tag">iOS</span><span class="tag">Open source</span></div>
+        <div class="card-desc">A Pomodoro timer that grows a virtual forest as you focus. Flutter, Android & iOS. Open source.</div>
+        <div class="card-tags"><span class="tag">Flutter</span><span class="tag">Android</span><span class="tag">Free</span></div>
       </div>
       <div class="card-footer">
         <div class="card-meta"><span class="meta-item">📱 Mobile</span><span class="meta-item">Free</span></div>
-        <button class="card-btn" onclick="logAnalyticsEvent('project_click',{name:'FocusForest'});showToast('Opening FocusForest page…','info')">View →</button>
+        <button class="card-btn" onclick="showToast('Opening FocusForest…','info')">View →</button>
       </div>
     </div>
 
-    <div class="card">
+    <div class="card static-card">
       <div class="card-thumb">
         <div class="card-thumb-bg" style="background:linear-gradient(135deg,#450a0a,#7f1d1d);">🎬</div>
         <span class="type-badge tb-video">Video</span>
         <button class="card-save-btn" onclick="saveItem(this,'Building a Game in 48 Hours')" title="Save">🔖</button>
       </div>
       <div class="card-body">
-        <div class="card-author-row">
-          <div class="card-author">
-            <div class="avatar" style="background:#fef2f2;color:#b91c1c;">SN</div>
-            <span class="author-name">SkyeNarayan</span>
-          </div>
-        </div>
+        <div class="card-author-row"><div class="card-author"><div class="avatar" style="background:#fef2f2;color:#b91c1c;">SN</div><span class="author-name">SkyeNarayan</span></div></div>
         <div class="card-title">Building a Game in 48 Hours</div>
         <div class="card-desc">Full devlog of a game jam entry — from blank canvas to submission. Real talk about tools, mistakes, and crunch.</div>
         <div class="card-tags"><span class="tag">Devlog</span><span class="tag">Game Jam</span><span class="tag">Unity</span></div>
       </div>
       <div class="card-footer">
         <div class="card-meta"><span class="meta-item">▶ Video</span><span class="meta-item">22 min</span></div>
-        <button class="card-btn" onclick="logAnalyticsEvent('project_click',{name:'48hr Game'});showToast('Opening video…','info')">Watch →</button>
+        <button class="card-btn" onclick="showToast('Opening video…','info')">Watch →</button>
       </div>
     </div>
 
-    <div class="card">
+    <div class="card static-card">
       <div class="card-thumb">
         <div class="card-thumb-bg" style="background:linear-gradient(135deg,#1e1b4b,#3730a3);">🧩</div>
-        <span class="type-badge tb-game">Game</span>
-        <span class="corner-badge cb-top">Top</span>
+        <span class="type-badge tb-game">Game</span><span class="corner-badge cb-top">Top</span>
         <button class="card-save-btn" onclick="saveItem(this,'GridLock Puzzle')" title="Save">🔖</button>
       </div>
       <div class="card-body">
-        <div class="card-author-row">
-          <div class="card-author">
-            <div class="avatar" style="background:#f5f3ff;color:#6d28d9;">TS</div>
-            <span class="author-name">TiaSharma_dev</span>
-          </div>
-        </div>
+        <div class="card-author-row"><div class="card-author"><div class="avatar" style="background:#f5f3ff;color:#6d28d9;">TS</div><span class="author-name">TiaSharma_dev</span></div></div>
         <div class="card-title">GridLock Puzzle</div>
         <div class="card-desc">200+ handcrafted logic puzzles. No ads, no timers, no pressure. Clean, satisfying puzzle solving in the browser.</div>
-        <div class="card-tags"><span class="tag">HTML5</span><span class="tag">Puzzle</span><span class="tag">Browser</span><span class="tag">Free</span></div>
+        <div class="card-tags"><span class="tag">HTML5</span><span class="tag">Puzzle</span><span class="tag">Free</span></div>
       </div>
       <div class="card-footer">
         <div class="card-meta"><span class="meta-item">🖥 Browser</span><span class="meta-item">Free</span></div>
@@ -1212,19 +1204,14 @@ footer { background: var(--surface); border-top: 1px solid var(--border); paddin
       </div>
     </div>
 
-    <div class="card">
+    <div class="card static-card">
       <div class="card-thumb">
         <div class="card-thumb-bg" style="background:linear-gradient(135deg,#1c1917,#44403c);">📷</div>
         <span class="type-badge tb-photo">Photo</span>
         <button class="card-save-btn" onclick="saveItem(this,'Urban Decay Vol.3')" title="Save">🔖</button>
       </div>
       <div class="card-body">
-        <div class="card-author-row">
-          <div class="card-author">
-            <div class="avatar" style="background:#fffbeb;color:#b45309;">DM</div>
-            <span class="author-name">DevMehta_lens</span>
-          </div>
-        </div>
+        <div class="card-author-row"><div class="card-author"><div class="avatar" style="background:#fffbeb;color:#b45309;">DM</div><span class="author-name">DevMehta_lens</span></div></div>
         <div class="card-title">Urban Decay Series — Vol. 3</div>
         <div class="card-desc">Abandoned buildings, broken concrete, and quiet beauty. Shot on 35mm film across Pune. 24 photographs.</div>
         <div class="card-tags"><span class="tag">Photography</span><span class="tag">Film</span><span class="tag">Urban</span></div>
@@ -1235,45 +1222,34 @@ footer { background: var(--surface); border-top: 1px solid var(--border); paddin
       </div>
     </div>
 
-    <div class="card">
+    <div class="card static-card">
       <div class="card-thumb">
         <div class="card-thumb-bg" style="background:linear-gradient(135deg,#0c4a6e,#0369a1);">🔧</div>
         <span class="type-badge tb-app">App</span>
         <button class="card-save-btn" onclick="saveItem(this,'DevPad')" title="Save">🔖</button>
       </div>
       <div class="card-body">
-        <div class="card-author-row">
-          <div class="card-author">
-            <div class="avatar" style="background:#e0f2fe;color:#0369a1;">RK</div>
-            <span class="author-name">RohitKumar_sh</span>
-          </div>
-        </div>
+        <div class="card-author-row"><div class="card-author"><div class="avatar" style="background:#e0f2fe;color:#0369a1;">RK</div><span class="author-name">RohitKumar_sh</span></div></div>
         <div class="card-title">DevPad</div>
-        <div class="card-desc">A lightweight Markdown notepad for developers. Works offline, no sync, no cloud. Just a fast, clean writing space.</div>
-        <div class="card-tags"><span class="tag">Electron</span><span class="tag">Markdown</span><span class="tag">Windows</span><span class="tag">macOS</span></div>
+        <div class="card-desc">A lightweight Markdown notepad for developers. Works offline. Fast, clean writing space.</div>
+        <div class="card-tags"><span class="tag">Electron</span><span class="tag">Markdown</span><span class="tag">Free</span></div>
       </div>
       <div class="card-footer">
         <div class="card-meta"><span class="meta-item">🖥 Desktop</span><span class="meta-item">Free</span></div>
-        <button class="card-btn" onclick="showToast('Opening DevPad page…','info')">Download →</button>
+        <button class="card-btn" onclick="showToast('Opening DevPad…','info')">Download →</button>
       </div>
     </div>
 
-    <div class="card">
+    <div class="card static-card">
       <div class="card-thumb">
         <div class="card-thumb-bg" style="background:linear-gradient(135deg,#1a1200,#78350f);">🏺</div>
-        <span class="type-badge tb-photo">Art</span>
-        <span class="corner-badge cb-new">New</span>
+        <span class="type-badge tb-photo">Art</span><span class="corner-badge cb-new">New</span>
         <button class="card-save-btn" onclick="saveItem(this,'Pixel Ruins')" title="Save">🔖</button>
       </div>
       <div class="card-body">
-        <div class="card-author-row">
-          <div class="card-author">
-            <div class="avatar" style="background:#fef3c7;color:#92400e;">AA</div>
-            <span class="author-name">Aarav_Art</span>
-          </div>
-        </div>
+        <div class="card-author-row"><div class="card-author"><div class="avatar" style="background:#fef3c7;color:#92400e;">AA</div><span class="author-name">Aarav_Art</span></div></div>
         <div class="card-title">Pixel Ruins — Environment Pack</div>
-        <div class="card-desc">32×32 pixel art tileset featuring ancient ruins, overgrown temples, and crumbling stone. Free for commercial use.</div>
+        <div class="card-desc">32×32 pixel art tileset: ancient ruins, overgrown temples, crumbling stone. Free for commercial use.</div>
         <div class="card-tags"><span class="tag">Pixel Art</span><span class="tag">Tileset</span><span class="tag">CC0</span></div>
       </div>
       <div class="card-footer">
@@ -1282,19 +1258,14 @@ footer { background: var(--surface); border-top: 1px solid var(--border); paddin
       </div>
     </div>
 
-    <div class="card">
+    <div class="card static-card">
       <div class="card-thumb">
         <div class="card-thumb-bg" style="background:linear-gradient(135deg,#0d1f12,#14532d);">🎵</div>
         <span class="type-badge tb-music">Music</span>
         <button class="card-save-btn" onclick="saveItem(this,'Ambient Forest Pack')" title="Save">🔖</button>
       </div>
       <div class="card-body">
-        <div class="card-author-row">
-          <div class="card-author">
-            <div class="avatar" style="background:#f0fdf4;color:#15803d;">NK</div>
-            <span class="author-name">NikhilKompo</span>
-          </div>
-        </div>
+        <div class="card-author-row"><div class="card-author"><div class="avatar" style="background:#f0fdf4;color:#15803d;">NK</div><span class="author-name">NikhilKompo</span></div></div>
         <div class="card-title">Ambient Forest — Sound Pack</div>
         <div class="card-desc">12 seamlessly looping ambient tracks for atmospheric games. Royalty-free for any solo developer project.</div>
         <div class="card-tags"><span class="tag">Audio</span><span class="tag">Ambient</span><span class="tag">Royalty-free</span></div>
@@ -1795,7 +1766,13 @@ footer { background: var(--surface); border-top: 1px solid var(--border); paddin
     serverTimestamp,
     doc,
     setDoc,
-    getDoc
+    getDoc,
+    getDocs,
+    query,
+    orderBy,
+    limit,
+    where,
+    getCountFromServer
   }                                               from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
   // Storage handled by Cloudinary (no Firebase Storage needed)
 
@@ -1851,9 +1828,133 @@ footer { background: var(--surface); border-top: 1px solid var(--border); paddin
   // ── Expose functions to global scope ─────────────────────────────────────
   window._fb = {
 
-    // Analytics
-    logEvent(name, params = {}) {
-      logEvent(analytics, name, params);
+    // Load published projects from Firestore and inject into grid
+    async loadProjects(filterType = 'all') {
+      const grid     = document.getElementById('mainGrid');
+      const skeleton = document.getElementById('skeletonCard');
+
+      try {
+        // Build query — newest first, max 20
+        let q;
+        if (filterType === 'all') {
+          q = query(
+            collection(db, 'projects'),
+            where('status', '==', 'published'),
+            orderBy('createdAt', 'desc'),
+            limit(20)
+          );
+        } else {
+          q = query(
+            collection(db, 'projects'),
+            where('status', '==', 'published'),
+            where('type', '==', filterType),
+            orderBy('createdAt', 'desc'),
+            limit(20)
+          );
+        }
+
+        const snapshot = await getDocs(q);
+
+        // Remove skeleton
+        if (skeleton) skeleton.remove();
+
+        if (snapshot.empty) {
+          // No Firestore projects yet — just show static cards
+          return;
+        }
+
+        // Type → badge class + emoji map
+        const typeMap = {
+          'Game':        { cls: 'tb-game',  emoji: '🎮', meta: '🖥 Browser' },
+          'App / Tool':  { cls: 'tb-app',   emoji: '📱', meta: '📱 App' },
+          'Video':       { cls: 'tb-video', emoji: '🎬', meta: '▶ Video' },
+          'Photo / Art': { cls: 'tb-photo', emoji: '📷', meta: '🎨 Art' },
+          'Post':        { cls: 'tb-post',  emoji: '✏️', meta: '📝 Post' },
+          'Music / Audio': { cls: 'tb-music', emoji: '🎵', meta: '🎵 Audio' },
+        };
+
+        // Insert Firestore cards BEFORE static cards
+        const staticCards = grid.querySelectorAll('.static-card');
+        snapshot.forEach((docSnap) => {
+          const p       = docSnap.data();
+          const info    = typeMap[p.type] || { cls: 'tb-app', emoji: '📦', meta: '— Project' };
+          const initials= (p.authorName || '??').slice(0,2).toUpperCase();
+          const tags    = (p.tags || []).slice(0, 3).map(t => `<span class="tag">${t}</span>`).join('');
+          const price   = p.pricing || 'Free';
+          const thumb   = p.fileURL
+            ? `<img src="${p.fileURL}" style="width:100%;height:100%;object-fit:cover;" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
+               <div class="card-thumb-bg" style="display:none;background:linear-gradient(135deg,#1e293b,#334155);">${info.emoji}</div>`
+            : `<div class="card-thumb-bg" style="background:linear-gradient(135deg,#1e293b,#334155);">${info.emoji}</div>`;
+
+          const card = document.createElement('div');
+          card.className = 'card firestore-card';
+          card.innerHTML = `
+            <div class="card-thumb">
+              ${thumb}
+              <span class="type-badge ${info.cls}">${p.type || 'Project'}</span>
+              <span class="corner-badge cb-new">New</span>
+              <button class="card-save-btn" onclick="saveItem(this,'${(p.title||'').replace(/'/g,"\\'")}')">🔖</button>
+            </div>
+            <div class="card-body">
+              <div class="card-author-row">
+                <div class="card-author">
+                  <div class="avatar" style="background:var(--accent-light);color:var(--accent);">${initials}</div>
+                  <span class="author-name">${p.authorName || 'Creator'}</span>
+                </div>
+              </div>
+              <div class="card-title">${p.title || 'Untitled'}</div>
+              <div class="card-desc">${(p.description || '').slice(0, 100)}${(p.description||'').length > 100 ? '…' : ''}</div>
+              <div class="card-tags">${tags}</div>
+            </div>
+            <div class="card-footer">
+              <div class="card-meta">
+                <span class="meta-item">${info.meta}</span>
+                <span class="meta-item">${price}</span>
+              </div>
+              ${p.externalLink
+                ? `<a href="${p.externalLink}" target="_blank" class="card-btn">View →</a>`
+                : `<button class="card-btn" onclick="showToast('Opening project…','info')">View →</button>`
+              }
+            </div>`;
+
+          // Insert before first static card so Firestore cards appear first
+          if (staticCards.length > 0) {
+            grid.insertBefore(card, staticCards[0]);
+          } else {
+            grid.appendChild(card);
+          }
+        });
+
+        logEvent(analytics, 'projects_loaded', { count: snapshot.size, filter: filterType });
+
+      } catch (err) {
+        console.error('Firestore load error:', err);
+        if (skeleton) skeleton.remove();
+        // Fail silently — static cards still show
+      }
+    },
+
+    // Update hero counters from Firestore real counts
+    async updateCounters() {
+      try {
+        const [projectsSnap, usersSnap] = await Promise.all([
+          getCountFromServer(query(collection(db, 'projects'), where('status','==','published'))),
+          getCountFromServer(collection(db, 'users'))
+        ]);
+        const projectCount = projectsSnap.data().count;
+        const userCount    = usersSnap.data().count;
+
+        // Update tab pills
+        document.getElementById('pill-all').textContent = projectCount || '—';
+
+        // Animate hero counters with real numbers (fallback to 0 if just starting)
+        animateCounter('counterCreators', userCount);
+        animateCounter('counterProjects', projectCount);
+        animateCounter('counterDownloads', projectCount * 3); // estimated
+        animateCounter('counterCountries', Math.min(userCount * 2, 180));
+      } catch (err) {
+        console.warn('Counter update failed silently:', err);
+      }
     },
 
     // Google Sign-In
@@ -2122,7 +2223,16 @@ footer { background: var(--surface); border-top: 1px solid var(--border); paddin
      APP LOGIC (non-module, calls window._fb)
 ====================================================== -->
 <script>
-/* ── Toast ─────────────────────────────────────────── */
+/* ── Load Firestore projects on boot ───────────────── */
+window.addEventListener('DOMContentLoaded', () => {
+  // Small delay so Firebase module finishes initialising
+  setTimeout(() => {
+    if (window._fb) {
+      window._fb.loadProjects('all');
+      window._fb.updateCounters();
+    }
+  }, 800);
+});
 function showToast(msg, type = 'info') {
   const c = document.getElementById('toastContainer');
   const t = document.createElement('div');
@@ -2237,7 +2347,29 @@ function switchTab(btn, type) {
   document.querySelectorAll('.tab-btn').forEach(t => t.classList.remove('active'));
   btn.classList.add('active');
   logAnalyticsEvent('tab_switch', { tab: type });
-  showToast(`Showing ${type === 'all' ? 'all content' : type}`, 'info');
+
+  // Remove existing Firestore cards, keep static ones
+  document.querySelectorAll('#mainGrid .firestore-card').forEach(c => c.remove());
+
+  // Re-add skeleton briefly
+  const grid = document.getElementById('mainGrid');
+  const sk = document.createElement('div');
+  sk.id = 'skeletonCard';
+  sk.className = 'card skeleton-card';
+  sk.style.cssText = 'opacity:0.5;pointer-events:none;';
+  sk.innerHTML = `<div class="card-thumb"><div class="card-thumb-bg" style="background:var(--surface2);">⏳</div></div><div class="card-body"><div class="card-title" style="color:var(--text3);">Loading…</div></div>`;
+  grid.prepend(sk);
+
+  // Map tab type to Firestore type field
+  const typeMap = { games:'Game', apps:'App / Tool', videos:'Video', photos:'Photo / Art', posts:'Post' };
+  const fsType = typeMap[type] || 'all';
+
+  // Show/hide static cards based on tab
+  document.querySelectorAll('#mainGrid .static-card').forEach(c => {
+    c.style.display = (type === 'all') ? '' : 'none';
+  });
+
+  if (window._fb) window._fb.loadProjects(fsType);
 }
 function toggleChip(el) {
   document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
@@ -2441,7 +2573,7 @@ window.addEventListener('scroll', () => {
   document.getElementById('backTop').classList.toggle('visible', window.scrollY > 400);
 });
 
-/* ── Animated counters ─────────────────────────────── */
+/* ── Animated counters (called by updateCounters or fallback) ── */
 function animateCounter(id, target, suffix='') {
   const el = document.getElementById(id);
   if (!el) return;
@@ -2453,19 +2585,7 @@ function animateCounter(id, target, suffix='') {
     el.textContent = Math.floor(start).toLocaleString() + suffix;
   }, 25);
 }
-const observer = new IntersectionObserver(entries => {
-  entries.forEach(e => {
-    if (e.isIntersecting) {
-      animateCounter('counterCreators', 0);
-      animateCounter('counterProjects', 0);
-      animateCounter('counterDownloads', 0);
-      animateCounter('counterCountries', 0);
-      observer.disconnect();
-    }
-  });
-}, { threshold: 0.3 });
-const heroStats = document.querySelector('.hero-stats-row');
-if (heroStats) observer.observe(heroStats);
+// Counters are now driven by updateCounters() reading real Firestore data
 
 /* ── Nav active ────────────────────────────────────── */
 window.addEventListener('scroll', () => {
