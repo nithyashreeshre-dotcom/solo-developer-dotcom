@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -1493,9 +1492,9 @@ footer { background: var(--surface); border-top: 1px solid var(--border); paddin
           <p class="form-hint">Comma separated. Helps people discover your work.</p>
         </div>
         <div class="form-group">
-          <label class="form-label">External link (optional)</label>
-          <input type="url" class="form-input" placeholder="https://itch.io/…" id="pubLink">
-          <p class="form-hint">Link to itch.io, GitHub, your site, etc.</p>
+          <label class="form-label">Game / Download link (itch.io, GitHub, your site…)</label>
+          <input type="url" class="form-input" placeholder="https://yourname.itch.io/your-game" id="pubLink">
+          <p class="form-hint">👆 Paste your itch.io or GitHub Releases link here for game files.</p>
         </div>
       </div>
 
@@ -1503,7 +1502,7 @@ footer { background: var(--surface); border-top: 1px solid var(--border); paddin
       <div class="dropzone" id="dropzone" ondragover="dragOver(event)" ondragleave="dragLeave(event)" ondrop="dropFile(event)" onclick="document.getElementById('fileInput').click()">
         <div class="dropzone-icon">☁️</div>
         <p><em>Click to browse</em> or drag and drop your files here</p>
-        <p class="dropzone-sub">Uploaded free via Cloudinary · ZIP, APK, EXE, MP4, PNG, JPG, PDF, MP3 — up to 100 MB per file</p>
+        <p class="dropzone-sub">For thumbnails & previews only · PNG, JPG, GIF up to 10MB · Videos up to 100MB · For game files use the external link below ↓</p>
         <input type="file" id="fileInput" style="display:none" onchange="fileSelected(this)">
         <div class="upload-progress" id="uploadProgress">
           <p style="font-size:0.78rem;color:var(--text2)" id="uploadFilename">Uploading…</p>
@@ -1675,6 +1674,67 @@ footer { background: var(--surface); border-top: 1px solid var(--border); paddin
       <button class="btn btn-primary" style="flex:1;" id="heroSignupBtn" onclick="handleHeroSignup()">
         <span class="spinner"></span>
         <span class="btn-label">Create account →</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- EDIT PROJECT MODAL -->
+<div class="overlay" id="editModal">
+  <div class="modal modal-wide">
+    <div class="modal-hd">
+      <h3>Edit your project</h3>
+      <button class="close-btn" onclick="closeModal('editModal')">✕</button>
+    </div>
+    <div class="modal-bd">
+      <input type="hidden" id="editDocId">
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Project title *</label>
+          <input type="text" class="form-input" id="editTitle">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Short tagline</label>
+          <input type="text" class="form-input" id="editTagline">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Full description *</label>
+        <textarea class="form-input" rows="4" id="editDesc"></textarea>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Tags</label>
+          <input type="text" class="form-input" placeholder="unity, horror, free…" id="editTags">
+          <p class="form-hint">Comma separated.</p>
+        </div>
+        <div class="form-group">
+          <label class="form-label">External link</label>
+          <input type="url" class="form-input" placeholder="https://…" id="editLink">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Platform / OS</label>
+          <select class="form-input" id="editPlatform">
+            <option>Browser / Web</option><option>Windows</option><option>macOS</option>
+            <option>Linux</option><option>Android</option><option>iOS</option>
+            <option>All platforms</option><option>Not applicable</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Pricing</label>
+          <select class="form-input" id="editPricing">
+            <option>Free</option><option>Paid</option><option>Pay what you want</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    <div class="modal-ft">
+      <button class="btn btn-ghost" onclick="closeModal('editModal')">Cancel</button>
+      <button class="btn btn-primary" id="editSaveBtn" onclick="saveEdit()">
+        <span class="spinner"></span>
+        <span class="btn-label">Save changes</span>
       </button>
     </div>
   </div>
@@ -1884,8 +1944,11 @@ footer { background: var(--surface); border-top: 1px solid var(--border); paddin
                <div class="card-thumb-bg" style="background:linear-gradient(135deg,#1e293b,#334155);">${info.emoji}</div>`
             : `<div class="card-thumb-bg" style="background:linear-gradient(135deg,#1e293b,#334155);">${info.emoji}</div>`;
 
+          const docId   = docSnap.id;
+          const isOwner = currentUser && currentUser.uid === p.authorId;
           const card = document.createElement('div');
           card.className = 'card firestore-card';
+          card.setAttribute('data-doc-id', docId);
           card.innerHTML = `
             <div class="card-thumb">
               ${thumb}
@@ -1899,6 +1962,10 @@ footer { background: var(--surface); border-top: 1px solid var(--border); paddin
                   <div class="avatar" style="background:var(--accent-light);color:var(--accent);">${initials}</div>
                   <span class="author-name">${p.authorName || 'Creator'}</span>
                 </div>
+                ${isOwner ? `<div style="display:flex;gap:4px;">
+                  <button onclick="openEditModal('${docId}')" style="font-size:0.68rem;padding:2px 8px;border:1px solid var(--border);border-radius:4px;background:var(--surface2);color:var(--text2);cursor:pointer;" title="Edit">✏️ Edit</button>
+                  <button onclick="confirmDelete('${docId}','${(p.title||'').replace(/'/g,"\\'")}') " style="font-size:0.68rem;padding:2px 8px;border:1px solid #fca5a5;border-radius:4px;background:#fef2f2;color:var(--red);cursor:pointer;" title="Delete">🗑</button>
+                </div>` : ''}
               </div>
               <div class="card-title">${p.title || 'Untitled'}</div>
               <div class="card-desc">${(p.description || '').slice(0, 100)}${(p.description||'').length > 100 ? '…' : ''}</div>
@@ -1929,6 +1996,41 @@ footer { background: var(--surface); border-top: 1px solid var(--border); paddin
         console.error('Firestore load error:', err);
         if (skeleton) skeleton.remove();
         // Fail silently — static cards still show
+      }
+    },
+
+    // Delete a project (owner only)
+    async deleteProject(docId) {
+      if (!currentUser) { showToast('Not signed in', 'error'); return; }
+      try {
+        const { deleteDoc } = await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js");
+        await deleteDoc(doc(db, 'projects', docId));
+        showToast('Project deleted.', 'success');
+        logEvent(analytics, 'project_delete', { docId });
+        // Remove card from DOM
+        const card = document.querySelector(`[data-doc-id="${docId}"]`);
+        if (card) card.remove();
+      } catch (err) {
+        showToast('Delete failed: ' + err.message, 'error');
+      }
+    },
+
+    // Update a project (owner only)
+    async updateProject(docId, updates) {
+      if (!currentUser) { showToast('Not signed in', 'error'); return; }
+      try {
+        const { updateDoc } = await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js");
+        await updateDoc(doc(db, 'projects', docId), {
+          ...updates,
+          updatedAt: serverTimestamp()
+        });
+        showToast('Project updated! 🎉', 'success');
+        logEvent(analytics, 'project_update', { docId });
+        // Reload grid
+        document.querySelectorAll('#mainGrid .firestore-card').forEach(c => c.remove());
+        await window._fb.loadProjects('all');
+      } catch (err) {
+        showToast('Update failed: ' + err.message, 'error');
       }
     },
 
@@ -2057,11 +2159,13 @@ footer { background: var(--surface); border-top: 1px solid var(--border); paddin
     },
 
     // Upload file to Cloudinary (free, no card needed)
-    uploadFile(file) {
+    // Upload file to Cloudinary with chunked upload (supports up to 500MB)
+    async uploadFile(file) {
       if (!file) return;
 
       const CLOUD_NAME    = 'dil3ndnlq';
       const UPLOAD_PRESET = 'wxrxsgt5';
+      const CHUNK_SIZE    = 20 * 1024 * 1024; // 20MB chunks
 
       const prog   = document.getElementById('uploadProgress');
       const bar    = document.getElementById('progressBar');
@@ -2069,55 +2173,113 @@ footer { background: var(--surface); border-top: 1px solid var(--border); paddin
       const infoEl = document.getElementById('uploadInfo');
 
       prog.style.display = 'block';
-      nameEl.textContent = `Uploading: ${file.name}`;
+      nameEl.textContent = `Uploading: ${file.name} (${(file.size/1024/1024).toFixed(1)} MB)`;
       bar.style.width    = '0%';
       infoEl.classList.remove('show');
 
-      const formData = new FormData();
-      formData.append('file', file);
-      formData.append('upload_preset', UPLOAD_PRESET);
-      // Note: folder is set inside the preset settings on Cloudinary dashboard
+      const sizeMB = file.size / (1024 * 1024);
 
-      const xhr = new XMLHttpRequest();
-      xhr.timeout = 60000; // 60 second timeout
+      // ── Small files (<= 90MB): simple single upload ──
+      if (sizeMB <= 90) {
+        return new Promise((resolve) => {
+          const formData = new FormData();
+          formData.append('file', file);
+          formData.append('upload_preset', UPLOAD_PRESET);
 
-      xhr.addEventListener('timeout', () => {
-        showToast('Upload timed out. Check your connection.', 'error');
-        prog.style.display = 'none';
-      });
+          const xhr = new XMLHttpRequest();
+          // No timeout for large files — let it run
 
-      // Live progress bar
-      xhr.upload.addEventListener('progress', (e) => {
-        if (e.lengthComputable) {
-          bar.style.width = ((e.loaded / e.total) * 100) + '%';
-        }
-      });
+          xhr.upload.addEventListener('progress', (e) => {
+            if (e.lengthComputable) bar.style.width = ((e.loaded / e.total) * 100) + '%';
+          });
 
-      xhr.addEventListener('load', () => {
-        if (xhr.status === 200) {
-          const res    = JSON.parse(xhr.responseText);
-          uploadedFileURL        = res.secure_url;
-          window._uploadedFileURL = res.secure_url;
-          nameEl.textContent     = `✓ ${file.name} — ready`;
-          infoEl.textContent     = `✓ Uploaded to Cloudinary · ${(file.size/1024/1024).toFixed(1)} MB · Free storage`;
-          infoEl.classList.add('show');
-          showToast('File uploaded successfully! 🎉', 'success');
-          logEvent(analytics, 'file_upload', { name: file.name, size: file.size, provider: 'cloudinary' });
-        } else {
-          const err = JSON.parse(xhr.responseText);
-          showToast('Upload failed: ' + (err.error?.message || 'Unknown error'), 'error');
+          xhr.addEventListener('load', () => {
+            if (xhr.status === 200) {
+              const res = JSON.parse(xhr.responseText);
+              uploadedFileURL         = res.secure_url;
+              window._uploadedFileURL = res.secure_url;
+              nameEl.textContent      = `✓ ${file.name} — ready`;
+              infoEl.textContent      = `✓ Uploaded to Cloudinary · ${sizeMB.toFixed(1)} MB · Free storage`;
+              infoEl.classList.add('show');
+              showToast('File uploaded successfully! 🎉', 'success');
+              logEvent(analytics, 'file_upload', { name: file.name, size: file.size, provider: 'cloudinary' });
+              resolve(res.secure_url);
+            } else {
+              const err = JSON.parse(xhr.responseText);
+              showToast('Upload failed: ' + (err.error?.message || 'Unknown error'), 'error');
+              prog.style.display = 'none';
+              resolve(null);
+            }
+          });
+
+          xhr.addEventListener('error', () => {
+            showToast('Upload error. Check your connection and try again.', 'error');
+            prog.style.display = 'none';
+            resolve(null);
+          });
+
+          xhr.open('POST', `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/auto/upload`);
+          xhr.send(formData);
+        });
+      }
+
+      // ── Large files (> 90MB): chunked upload ──
+      nameEl.textContent = `Uploading: ${file.name} in chunks…`;
+      const totalChunks  = Math.ceil(file.size / CHUNK_SIZE);
+      const uniqueId     = `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+
+      for (let i = 0; i < totalChunks; i++) {
+        const start = i * CHUNK_SIZE;
+        const end   = Math.min(start + CHUNK_SIZE, file.size);
+        const chunk = file.slice(start, end);
+
+        const formData = new FormData();
+        formData.append('file', chunk);
+        formData.append('upload_preset', UPLOAD_PRESET);
+
+        const result = await new Promise((resolve, reject) => {
+          const xhr = new XMLHttpRequest();
+
+          xhr.upload.addEventListener('progress', (e) => {
+            if (e.lengthComputable) {
+              const chunkPct  = e.loaded / e.total;
+              const totalPct  = ((i + chunkPct) / totalChunks) * 100;
+              bar.style.width = totalPct + '%';
+              nameEl.textContent = `Uploading chunk ${i+1}/${totalChunks} · ${totalPct.toFixed(0)}%`;
+            }
+          });
+
+          xhr.addEventListener('load', () => {
+            if (xhr.status === 200) resolve(JSON.parse(xhr.responseText));
+            else reject(new Error(xhr.responseText));
+          });
+          xhr.addEventListener('error', () => reject(new Error('Network error')));
+
+          xhr.open('POST', `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/auto/upload`);
+          xhr.setRequestHeader('X-Unique-Upload-Id', uniqueId);
+          xhr.setRequestHeader('Content-Range', `bytes ${start}-${end-1}/${file.size}`);
+          xhr.send(formData);
+        }).catch((err) => {
+          showToast(`Upload failed on chunk ${i+1}: ${err.message}`, 'error');
           prog.style.display = 'none';
+          return null;
+        });
+
+        if (!result) return null;
+
+        // Last chunk returns the final URL
+        if (i === totalChunks - 1 && result.secure_url) {
+          uploadedFileURL         = result.secure_url;
+          window._uploadedFileURL = result.secure_url;
+          bar.style.width         = '100%';
+          nameEl.textContent      = `✓ ${file.name} — ready`;
+          infoEl.textContent      = `✓ Uploaded to Cloudinary · ${sizeMB.toFixed(1)} MB · Free storage`;
+          infoEl.classList.add('show');
+          showToast('Large file uploaded successfully! 🎉', 'success');
+          logEvent(analytics, 'file_upload', { name: file.name, size: file.size, provider: 'cloudinary', chunked: true });
+          return result.secure_url;
         }
-      });
-
-      xhr.addEventListener('error', () => {
-        showToast('Upload error. Check your connection and try again.', 'error');
-        prog.style.display = 'none';
-      });
-
-      // Cloudinary auto endpoint handles images, videos, audio, raw files
-      xhr.open('POST', `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/auto/upload`);
-      xhr.send(formData);
+      }
     },
 
     // Publish project to Firestore
@@ -2586,6 +2748,65 @@ function animateCounter(id, target, suffix='') {
   }, 25);
 }
 // Counters are now driven by updateCounters() reading real Firestore data
+
+/* ── Edit / Delete ─────────────────────────────────── */
+// Store current project data for editing
+window._editingProject = {};
+
+async function openEditModal(docId) {
+  // Fetch project data from Firestore to pre-fill form
+  try {
+    const { getDoc, doc } = await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js");
+    // Use the already-initialized db from _fb
+    showToast('Loading project data…', 'info');
+    // Get the card data from DOM as fallback
+    const card  = document.querySelector(`[data-doc-id="${docId}"]`);
+    const title = card?.querySelector('.card-title')?.textContent || '';
+    const desc  = card?.querySelector('.card-desc')?.textContent || '';
+
+    document.getElementById('editDocId').value   = docId;
+    document.getElementById('editTitle').value   = title;
+    document.getElementById('editDesc').value    = desc;
+    document.getElementById('editTags').value    = '';
+    document.getElementById('editTagline').value = '';
+    document.getElementById('editLink').value    = '';
+
+    openModal('editModal');
+  } catch (err) {
+    showToast('Could not load project: ' + err.message, 'error');
+  }
+}
+
+function saveEdit() {
+  const docId = document.getElementById('editDocId').value;
+  if (!docId) return;
+
+  const btn = document.getElementById('editSaveBtn');
+  btn.classList.add('loading');
+
+  const updates = {
+    title:       document.getElementById('editTitle').value.trim(),
+    description: document.getElementById('editDesc').value.trim(),
+    tagline:     document.getElementById('editTagline').value.trim(),
+    tags:        document.getElementById('editTags').value.split(',').map(t=>t.trim()).filter(Boolean),
+    externalLink:document.getElementById('editLink').value.trim(),
+    platform:    document.getElementById('editPlatform').value,
+    pricing:     document.getElementById('editPricing').value,
+  };
+
+  if (!updates.title) { showToast('Title is required', 'error'); btn.classList.remove('loading'); return; }
+
+  window._fb.updateProject(docId, updates).then(() => {
+    btn.classList.remove('loading');
+    closeModal('editModal');
+  }).catch(() => btn.classList.remove('loading'));
+}
+
+function confirmDelete(docId, title) {
+  if (confirm(`Delete "${title}"? This cannot be undone.`)) {
+    window._fb.deleteProject(docId);
+  }
+}
 
 /* ── Nav active ────────────────────────────────────── */
 window.addEventListener('scroll', () => {
