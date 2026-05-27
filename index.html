@@ -833,6 +833,205 @@ footer { background: var(--surface); border-top: 1px solid var(--border); paddin
   .form-row { grid-template-columns: 1fr; }
   .type-selector { grid-template-columns: repeat(3, 1fr); }
 }
+
+/* ===== DASHBOARD ===== */
+.dash-overlay {
+  display: none; position: fixed; inset: 0; z-index: 900;
+  background: var(--bg); overflow-y: auto; animation: fadeIn 0.2s ease;
+}
+.dash-overlay.open { display: block; }
+@keyframes fadeIn { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:none; } }
+.dash-header {
+  background: var(--surface); border-bottom: 1px solid var(--border);
+  padding: 0 2rem; display: flex; align-items: center;
+  justify-content: space-between; height: 58px; position: sticky; top: 0; z-index: 10;
+}
+.dash-header h2 { font-size: 1rem; font-weight: 600; }
+.dash-inner { max-width: 1100px; margin: 0 auto; padding: 2rem 1.5rem; }
+.dash-tabs {
+  display: flex; gap: 2px; border-bottom: 1px solid var(--border);
+  margin-bottom: 2rem; overflow-x: auto; scrollbar-width: none;
+}
+.dash-tab {
+  padding: 9px 16px; font-size: 0.875rem; color: var(--text2);
+  border: none; border-bottom: 2px solid transparent; background: none;
+  margin-bottom: -1px; transition: all var(--transition);
+  white-space: nowrap; font-weight: 400; cursor: pointer;
+}
+.dash-tab:hover { color: var(--text); }
+.dash-tab.active { color: var(--accent); border-bottom-color: var(--accent); font-weight: 500; }
+.dash-panel { display: none; }
+.dash-panel.active { display: block; }
+.dash-stats { display: grid; grid-template-columns: repeat(4,1fr); gap: 1rem; margin-bottom: 2rem; }
+.dash-stat-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--r-lg); padding: 1.25rem 1.5rem;
+}
+.dash-stat-label { font-size: 0.72rem; color: var(--text3); margin-bottom: 6px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; }
+.dash-stat-val { font-size: 1.8rem; font-weight: 600; letter-spacing: -0.03em; color: var(--text); }
+.dash-stat-sub { font-size: 0.72rem; color: var(--text3); margin-top: 3px; }
+.dash-project-row {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--r-lg); padding: 1rem 1.25rem;
+  display: flex; align-items: center; gap: 1rem; margin-bottom: 0.75rem; transition: box-shadow 0.2s;
+}
+.dash-project-row:hover { box-shadow: var(--shadow-md); }
+.dash-project-thumb {
+  width: 56px; height: 56px; border-radius: var(--r-md); background: var(--surface2);
+  flex-shrink: 0; overflow: hidden; display: flex; align-items: center; justify-content: center; font-size: 1.5rem;
+}
+.dash-project-thumb img { width:100%; height:100%; object-fit:cover; }
+.dash-project-info { flex: 1; min-width: 0; }
+.dash-project-title { font-size: 0.92rem; font-weight: 600; color: var(--text); margin-bottom: 3px; }
+.dash-project-meta { font-size: 0.75rem; color: var(--text3); display: flex; gap: 12px; }
+.dash-project-actions { display: flex; gap: 6px; flex-shrink: 0; }
+.dash-action-btn {
+  padding: 5px 12px; border-radius: var(--r-sm); font-size: 0.78rem; font-weight: 500;
+  border: 1px solid var(--border); background: var(--surface); color: var(--text2);
+  cursor: pointer; transition: all var(--transition);
+}
+.dash-action-btn:hover { background: var(--surface2); color: var(--text); }
+.dash-action-btn.danger { border-color: #fca5a5; color: var(--red); background: var(--red-light); }
+.dash-action-btn.danger:hover { background: var(--red); color: white; }
+.dash-action-btn.primary { border-color: var(--accent-mid); color: var(--accent); background: var(--accent-light); }
+.dash-action-btn.primary:hover { background: var(--accent); color: white; border-color: var(--accent); }
+.analytics-bar-wrap { margin-bottom: 1.25rem; }
+.analytics-bar-label { font-size: 0.78rem; color: var(--text3); margin-bottom: 6px; display: flex; justify-content: space-between; }
+.analytics-bar-track { height: 8px; background: var(--surface2); border-radius: 99px; overflow: hidden; }
+.analytics-bar-fill { height: 100%; background: var(--accent); border-radius: 99px; transition: width 1s ease; }
+.profile-avatar-upload {
+  width: 80px; height: 80px; border-radius: 50%; background: var(--accent-light);
+  border: 2px dashed var(--accent-mid); display: flex; align-items: center;
+  justify-content: center; font-size: 1.8rem; cursor: pointer; margin-bottom: 1rem;
+  overflow: hidden; transition: all var(--transition);
+}
+.profile-avatar-upload:hover { border-color: var(--accent); }
+.profile-avatar-upload img { width:100%; height:100%; object-fit:cover; border-radius:50%; }
+
+/* ===== NOTIFICATIONS ===== */
+.notif-panel {
+  position: absolute; top: calc(100% + 8px); right: 0; width: 340px;
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--r-xl); box-shadow: var(--shadow-lg); z-index: 600;
+  overflow: hidden; display: none;
+}
+.notif-panel.open { display: block; }
+.notif-panel-hd {
+  padding: 1rem 1.25rem; border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: space-between;
+}
+.notif-panel-hd h4 { font-size: 0.9rem; font-weight: 600; }
+.notif-mark-read { font-size: 0.75rem; color: var(--accent); cursor: pointer; border: none; background: none; font-family: inherit; }
+.notif-item {
+  display: flex; gap: 10px; padding: 12px 1.25rem;
+  border-bottom: 1px solid var(--border); cursor: pointer; transition: background var(--transition);
+}
+.notif-item:last-child { border-bottom: none; }
+.notif-item:hover { background: var(--surface2); }
+.notif-item.unread { background: var(--accent-light); }
+.notif-icon {
+  width: 36px; height: 36px; border-radius: 50%; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1rem; background: var(--surface2);
+}
+.notif-text { flex: 1; }
+.notif-title { font-size: 0.82rem; font-weight: 500; color: var(--text); line-height: 1.4; }
+.notif-time { font-size: 0.72rem; color: var(--text3); margin-top: 2px; }
+.notif-empty { padding: 2rem; text-align: center; color: var(--text3); font-size: 0.85rem; }
+.notif-unread-badge {
+  position: absolute; top: 3px; right: 3px; background: var(--red); color: white;
+  border-radius: 99px; font-size: 0.58rem; font-weight: 700;
+  min-width: 16px; height: 16px; display: flex; align-items: center;
+  justify-content: center; padding: 0 4px;
+}
+
+/* ===== PROJECT PAGE ===== */
+.project-page {
+  display: none; position: fixed; inset: 0; z-index: 850;
+  background: var(--bg); overflow-y: auto; animation: fadeIn 0.2s ease;
+}
+.project-page.open { display: block; }
+.project-page-header {
+  background: var(--surface); border-bottom: 1px solid var(--border);
+  padding: 0 2rem; display: flex; align-items: center; gap: 1rem;
+  height: 58px; position: sticky; top: 0; z-index: 10;
+}
+.project-page-inner { max-width: 900px; margin: 0 auto; padding: 2rem 1.5rem; }
+.project-hero-thumb {
+  width: 100%; aspect-ratio: 16/7; border-radius: var(--r-xl);
+  background: var(--surface2); overflow: hidden; margin-bottom: 2rem;
+  display: flex; align-items: center; justify-content: center; font-size: 5rem;
+}
+.project-hero-thumb img { width:100%; height:100%; object-fit:cover; }
+.project-page-title { font-size: 2rem; font-weight: 600; letter-spacing: -0.03em; margin-bottom: 0.75rem; }
+.project-page-meta { display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; margin-bottom: 1.5rem; }
+.project-page-desc { font-size: 0.95rem; color: var(--text2); line-height: 1.75; margin-bottom: 2rem; white-space: pre-wrap; }
+.project-page-actions { display: flex; gap: 10px; margin-bottom: 2rem; flex-wrap: wrap; }
+.project-author-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--r-lg); padding: 1.25rem;
+  display: flex; align-items: center; gap: 1rem; margin-bottom: 2rem;
+}
+.project-author-avatar {
+  width: 48px; height: 48px; border-radius: 50%; font-size: 1rem; font-weight: 700;
+  display: flex; align-items: center; justify-content: center;
+  background: var(--accent-light); color: var(--accent); flex-shrink: 0;
+}
+.project-author-name { font-size: 0.9rem; font-weight: 600; }
+.project-author-sub { font-size: 0.78rem; color: var(--text3); }
+
+/* ===== COMMENTS ===== */
+.comments-section { margin-top: 2rem; }
+.comments-title { font-size: 1rem; font-weight: 600; margin-bottom: 1.25rem; letter-spacing: -0.01em; }
+.comment-input-wrap {
+  display: flex; gap: 10px; margin-bottom: 1.5rem;
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--r-lg); padding: 10px 14px; align-items: flex-end;
+}
+.comment-input {
+  flex: 1; border: none; outline: none; font-size: 0.875rem;
+  font-family: inherit; color: var(--text); resize: none;
+  min-height: 38px; max-height: 120px; background: transparent; line-height: 1.55;
+}
+.comment-input::placeholder { color: var(--text3); }
+.comment-submit {
+  padding: 7px 16px; background: var(--accent); color: white;
+  border: none; border-radius: var(--r-md); font-size: 0.82rem;
+  font-weight: 500; cursor: pointer; font-family: inherit; transition: all var(--transition);
+}
+.comment-submit:hover { background: var(--accent-hover); }
+.comment-item { display: flex; gap: 10px; margin-bottom: 1.25rem; }
+.comment-avatar {
+  width: 32px; height: 32px; border-radius: 50%; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.7rem; font-weight: 700; background: var(--surface2);
+  color: var(--text2); border: 1.5px solid var(--border);
+}
+.comment-body {
+  flex: 1; background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--r-lg); padding: 10px 14px;
+}
+.comment-author-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px; }
+.comment-author { font-size: 0.8rem; font-weight: 600; color: var(--text); }
+.comment-text { font-size: 0.85rem; color: var(--text2); line-height: 1.55; }
+.comment-time { font-size: 0.7rem; color: var(--text3); margin-top: 6px; }
+.comment-delete-btn { font-size: 0.68rem; color: var(--text3); border: none; background: none; cursor: pointer; }
+.comment-delete-btn:hover { color: var(--red); }
+.comments-empty { text-align: center; color: var(--text3); font-size: 0.85rem; padding: 2rem; }
+
+.follow-btn-lg {
+  padding: 8px 24px; border-radius: 999px; font-size: 0.85rem; font-weight: 600;
+  border: 1.5px solid var(--border); background: var(--surface);
+  color: var(--text2); cursor: pointer; transition: all var(--transition);
+}
+.follow-btn-lg:hover, .follow-btn-lg.following { background: var(--accent); border-color: var(--accent); color: white; }
+
+@media (max-width: 768px) {
+  .dash-stats { grid-template-columns: repeat(2,1fr); }
+  .notif-panel { width: 300px; }
+  .project-page-title { font-size: 1.5rem; }
+  .dash-project-actions { flex-direction: column; }
+}
 </style>
 </head>
 <body>
@@ -867,10 +1066,22 @@ footer { background: var(--surface); border-top: 1px solid var(--border); paddin
       <div class="search-results-dropdown" id="searchDrop"></div>
     </div>
     <div class="nav-actions">
-      <button class="btn-icon" onclick="showToast('Notifications coming soon!','info')" style="position:relative;">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
-        <span class="notif-dot"></span>
-      </button>
+      <div style="position:relative;">
+        <button class="btn-icon" onclick="toggleNotifPanel()" id="notifBtn" style="position:relative;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+          <span class="notif-unread-badge" id="notifBadge" style="display:none;">0</span>
+        </button>
+        <!-- NOTIFICATIONS PANEL -->
+        <div class="notif-panel" id="notifPanel">
+          <div class="notif-panel-hd">
+            <h4>Notifications</h4>
+            <button class="notif-mark-read" onclick="markAllRead()">Mark all read</button>
+          </div>
+          <div id="notifList">
+            <div class="notif-empty">You're all caught up! 🎉</div>
+          </div>
+        </div>
+      </div>
 
       <!-- Auth buttons — shown when logged out -->
       <div id="navAuthButtons">
@@ -892,7 +1103,7 @@ footer { background: var(--surface); border-top: 1px solid var(--border); paddin
           <div class="nav-user-menu-item" onclick="openModal('uploadModal'); toggleUserMenu();">
             <span>⬆️</span> Publish a project
           </div>
-          <div class="nav-user-menu-item" onclick="showToast('Dashboard coming soon!','info'); toggleUserMenu();">
+          <div class="nav-user-menu-item" onclick="openDashboard(); toggleUserMenu();">
             <span>📊</span> My dashboard
           </div>
           <div class="nav-user-menu-item" onclick="showToast('Profile coming soon!','info'); toggleUserMenu();">
@@ -1740,6 +1951,181 @@ footer { background: var(--surface); border-top: 1px solid var(--border); paddin
   </div>
 </div>
 
+<!-- ===== DASHBOARD ===== -->
+<div class="dash-overlay" id="dashOverlay">
+  <div class="dash-header">
+    <div style="display:flex;align-items:center;gap:12px;">
+      <button onclick="closeDashboard()" style="background:none;border:none;color:var(--text2);cursor:pointer;font-size:1.2rem;padding:4px;">←</button>
+      <h2>My Dashboard</h2>
+    </div>
+    <button class="btn btn-primary btn-sm" onclick="closeDashboard();openModal('uploadModal');">
+      + Publish new
+    </button>
+  </div>
+  <div class="dash-inner">
+    <!-- Stats -->
+    <div class="dash-stats">
+      <div class="dash-stat-card">
+        <div class="dash-stat-label">Total projects</div>
+        <div class="dash-stat-val" id="dStatProjects">0</div>
+        <div class="dash-stat-sub">published</div>
+      </div>
+      <div class="dash-stat-card">
+        <div class="dash-stat-label">Total views</div>
+        <div class="dash-stat-val" id="dStatViews">0</div>
+        <div class="dash-stat-sub">across all projects</div>
+      </div>
+      <div class="dash-stat-card">
+        <div class="dash-stat-label">Followers</div>
+        <div class="dash-stat-val" id="dStatFollowers">0</div>
+        <div class="dash-stat-sub">creators following you</div>
+      </div>
+      <div class="dash-stat-card">
+        <div class="dash-stat-label">Comments</div>
+        <div class="dash-stat-val" id="dStatComments">0</div>
+        <div class="dash-stat-sub">on your projects</div>
+      </div>
+    </div>
+
+    <!-- Tabs -->
+    <div class="dash-tabs">
+      <button class="dash-tab active" onclick="switchDashTab(this,'dProjects')">📦 My Projects</button>
+      <button class="dash-tab" onclick="switchDashTab(this,'dAnalytics')">📊 Analytics</button>
+      <button class="dash-tab" onclick="switchDashTab(this,'dProfile')">👤 Profile</button>
+    </div>
+
+    <!-- My Projects -->
+    <div class="dash-panel active" id="dProjects">
+      <div id="dashProjectList">
+        <div style="text-align:center;padding:3rem;color:var(--text3);">Loading your projects…</div>
+      </div>
+    </div>
+
+    <!-- Analytics -->
+    <div class="dash-panel" id="dAnalytics">
+      <div style="margin-bottom:1.5rem;">
+        <div style="font-size:0.9rem;font-weight:600;margin-bottom:1rem;color:var(--text);">Views per project</div>
+        <div id="analyticsChart">
+          <div style="text-align:center;padding:2rem;color:var(--text3);">Publish projects to see analytics</div>
+        </div>
+      </div>
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);padding:1.5rem;margin-top:1.5rem;">
+        <div style="font-size:0.85rem;font-weight:600;margin-bottom:0.75rem;">📈 Powered by Firebase Analytics</div>
+        <div style="font-size:0.82rem;color:var(--text2);line-height:1.65;">
+          Detailed analytics including referrer sources, device types, and geographic data are available in your
+          <a href="https://console.firebase.google.com" target="_blank" style="color:var(--accent);">Firebase Console → Analytics</a>.
+        </div>
+      </div>
+    </div>
+
+    <!-- Profile Editor -->
+    <div class="dash-panel" id="dProfile">
+      <div style="max-width:560px;">
+        <div class="profile-avatar-upload" id="profileAvatarWrap" onclick="document.getElementById('avatarInput').click()">
+          <span id="profileAvatarEmoji">👤</span>
+          <input type="file" id="avatarInput" accept="image/*" style="display:none" onchange="uploadAvatar(this)">
+        </div>
+        <div style="font-size:0.78rem;color:var(--text3);margin-bottom:1.5rem;">Click to upload profile photo</div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Display name</label>
+            <input type="text" class="form-input" id="profileName" placeholder="Your creator name">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Username</label>
+            <input type="text" class="form-input" id="profileUsername" placeholder="@handle">
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Bio</label>
+          <textarea class="form-input" rows="3" id="profileBio" placeholder="Tell people about yourself and what you make…"></textarea>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Location</label>
+          <input type="text" class="form-input" id="profileLocation" placeholder="City, Country">
+        </div>
+        <div style="font-size:0.82rem;font-weight:600;margin-bottom:0.75rem;margin-top:0.5rem;color:var(--text2);">Social links</div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Twitter / X</label>
+            <input type="url" class="form-input" id="profileTwitter" placeholder="https://x.com/…">
+          </div>
+          <div class="form-group">
+            <label class="form-label">GitHub</label>
+            <input type="url" class="form-input" id="profileGithub" placeholder="https://github.com/…">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">itch.io</label>
+            <input type="url" class="form-input" id="profileItch" placeholder="https://yourname.itch.io">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Personal website</label>
+            <input type="url" class="form-input" id="profileWebsite" placeholder="https://…">
+          </div>
+        </div>
+        <button class="btn btn-primary" onclick="saveProfile()" id="saveProfileBtn" style="margin-top:0.5rem;">
+          <span class="spinner"></span>
+          <span class="btn-label">Save profile</span>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== PROJECT PAGE ===== -->
+<div class="project-page" id="projectPage">
+  <div class="project-page-header">
+    <button onclick="closeProjectPage()" style="background:none;border:none;color:var(--text2);cursor:pointer;font-size:1.2rem;padding:4px;">← Back</button>
+    <span style="font-size:0.85rem;color:var(--text3);" id="projectPageBreadcrumb">Project</span>
+    <div style="margin-left:auto;display:flex;gap:8px;">
+      <button class="btn btn-ghost btn-sm" onclick="shareCurrentProject()">Share</button>
+    </div>
+  </div>
+  <div class="project-page-inner">
+    <!-- Hero thumb -->
+    <div class="project-hero-thumb" id="ppThumb">🎮</div>
+
+    <!-- Title + meta -->
+    <div class="project-page-title" id="ppTitle">Project Title</div>
+    <div class="project-page-meta" id="ppMeta"></div>
+
+    <!-- Actions -->
+    <div class="project-page-actions" id="ppActions"></div>
+
+    <!-- Description -->
+    <div style="font-size:0.82rem;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:0.75rem;">About</div>
+    <div class="project-page-desc" id="ppDesc">Loading…</div>
+
+    <!-- Tags -->
+    <div class="card-tags" id="ppTags" style="margin-bottom:2rem;"></div>
+
+    <!-- Author card -->
+    <div class="project-author-card" id="ppAuthorCard">
+      <div class="project-author-avatar" id="ppAuthorAvatar">?</div>
+      <div style="flex:1;">
+        <div class="project-author-name" id="ppAuthorName">Creator</div>
+        <div class="project-author-sub" id="ppAuthorSub"></div>
+      </div>
+      <button class="follow-btn-lg" id="ppFollowBtn" onclick="toggleFollowCreator()">Follow</button>
+    </div>
+
+    <!-- Comments -->
+    <div class="comments-section">
+      <div class="comments-title" id="ppCommentsTitle">Comments</div>
+      <div class="comment-input-wrap" id="ppCommentInputWrap">
+        <textarea class="comment-input" id="ppCommentInput" placeholder="Leave feedback or a comment…" rows="1"
+          oninput="this.style.height='auto';this.style.height=this.scrollHeight+'px'"></textarea>
+        <button class="comment-submit" onclick="submitComment()">Post</button>
+      </div>
+      <div id="ppCommentsList">
+        <div class="comments-loading">Loading comments…</div>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- COOKIE BANNER -->
 <div class="cookie-banner" id="cookieBanner">
   <p>We use essential cookies and Firebase Analytics to keep the platform running. No third-party ads, no data selling. <a href="#">Learn more</a></p>
@@ -1832,7 +2218,11 @@ footer { background: var(--surface); border-top: 1px solid var(--border); paddin
     orderBy,
     limit,
     where,
-    getCountFromServer
+    getCountFromServer,
+    onSnapshot,
+    increment,
+    updateDoc,
+    deleteDoc
   }                                               from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
   // Storage handled by Cloudinary (no Firebase Storage needed)
 
