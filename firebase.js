@@ -104,12 +104,28 @@
       const skeleton = document.getElementById('skeletonCard');
       try {
         let q;
+        let clientSortByRating = false;
         if (filterType === 'all') {
           q = query(collection(db, 'projects'), orderBy('createdAt', 'desc'), limit(20));
+        } else if (filterType === 'top-rated') {
+          // Sort client-side so projects without a rating field aren't excluded.
+          q = query(collection(db, 'projects'), orderBy('createdAt', 'desc'), limit(50));
+          clientSortByRating = true;
+        } else if (filterType === 'free') {
+          q = query(collection(db, 'projects'), where('pricing', '==', 'Free'), limit(20));
         } else {
           q = query(collection(db, 'projects'), where('type', '==', filterType), limit(20));
         }
-        const snapshot = await getDocs(q);
+        let snapshot = await getDocs(q);
+        if (clientSortByRating) {
+          const docs = snapshot.docs.slice().sort((a, b) => {
+            const ra = Number(a.data().rating) || 0;
+            const rb = Number(b.data().rating) || 0;
+            if (rb !== ra) return rb - ra;
+            return (b.data().views || 0) - (a.data().views || 0);
+          }).slice(0, 20);
+          snapshot = { empty: docs.length === 0, size: docs.length, forEach: (fn) => docs.forEach(fn) };
+        }
         if (skeleton) skeleton.remove();
         if (snapshot.empty) return;
         const typeMap = {
