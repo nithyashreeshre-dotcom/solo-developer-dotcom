@@ -1,4 +1,4 @@
-  // ── Firebase imports ──────────────────────────────────────────────────────
+// ── Firebase imports ──────────────────────────────────────────────────────
   import { initializeApp }                        from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
   import { getAnalytics, logEvent }               from "https://www.gstatic.com/firebasejs/10.12.2/firebase-analytics.js";
   import {
@@ -55,6 +55,16 @@
   let uploadedFileURL = null;
   let currentUser     = null;
   window._uploadedFileURL = null;
+
+  // ── Admin / owner control ───────────────────────────────────────────────
+  // Put your own Firebase Auth UID(s) here. Find yours by signing in, then
+  // opening the browser console and running: window._fb.currentUser().uid
+  const ADMIN_UIDS = ["PUT_YOUR_FIREBASE_UID_HERE"];
+  function isAdminUser() {
+    const u = currentUser;
+    return !!(u && ADMIN_UIDS.includes(u.uid));
+  }
+  window._fb.isAdmin = isAdminUser;
 
   onAuthStateChanged(auth, (user) => {
     currentUser = user;
@@ -115,6 +125,8 @@
             : `<div class="card-thumb-bg" style="background:linear-gradient(135deg,#0f172a,#1e293b);">${info.emoji}</div>`;
           const docId   = docSnap.id;
           const isOwner = currentUser && currentUser.uid === p.authorId;
+          const isAdmin = isAdminUser();
+          const canDelete = isOwner || isAdmin;
           const card = document.createElement('div');
           card.className = 'card firestore-card';
           card.setAttribute('data-doc-id', docId);
@@ -135,6 +147,8 @@
                 ${isOwner ? `<div style="display:flex;gap:4px;">
                   <button onclick="event.stopPropagation();openEditModal('${docId}')" style="font-size:0.6rem;padding:2px 7px;border:1px solid var(--border2);border-radius:3px;background:var(--surface2);color:var(--text3);cursor:pointer;font-family:var(--font-mono);text-transform:uppercase;letter-spacing:0.04em;">Edit</button>
                   <button onclick="event.stopPropagation();confirmDelete('${docId}','${(p.title||'').replace(/'/g,"\'")}')" style="font-size:0.6rem;padding:2px 7px;border:1px solid rgba(239,68,68,0.3);border-radius:3px;background:var(--red-dim);color:var(--red);cursor:pointer;font-family:var(--font-mono);text-transform:uppercase;letter-spacing:0.04em;">Del</button>
+                </div>` : isAdmin ? `<div style="display:flex;gap:4px;">
+                  <button onclick="event.stopPropagation();confirmDelete('${docId}','${(p.title||'').replace(/'/g,"\'")}')" style="font-size:0.6rem;padding:2px 7px;border:1px solid rgba(239,68,68,0.3);border-radius:3px;background:var(--red-dim);color:var(--red);cursor:pointer;font-family:var(--font-mono);text-transform:uppercase;letter-spacing:0.04em;">Admin Del</button>
                 </div>` : ''}
               </div>
               <div class="card-title">${escapeHtml(p.title || 'Untitled')}</div>
@@ -656,7 +670,9 @@ async function openProjectPage(docId) {
     actionsHtml.push(`<button class="btn btn-ghost" onclick="saveItem(this,'${escapeHtml(p.title || '')}')"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg> Save</button>`);
     actionsHtml.push(`<button class="btn btn-ghost" onclick="shareCurrentProject()"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg> Share</button>`);
     const isOwner = user && user.uid === p.authorId;
+    const isAdmin = isAdminUser();
     if (isOwner) actionsHtml.push(`<button class="btn btn-ghost" onclick="openEditModal('${docId}');closeProjectPage();"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg> Edit</button>`);
+    if (isOwner || isAdmin) actionsHtml.push(`<button class="btn btn-ghost" style="color:var(--red);border-color:rgba(239,68,68,0.3);" onclick="confirmDelete('${docId}','${escapeHtml((p.title||'').replace(/'/g,"\\'"))}');closeProjectPage();"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg> ${isOwner ? 'Delete' : 'Remove (Admin)'}</button>`);
     document.getElementById('ppActions').innerHTML = actionsHtml.join('');
     document.getElementById('ppDesc').textContent = p.description || p.tagline || 'No description provided.';
     const tagsEl = document.getElementById('ppTags');
@@ -880,7 +896,7 @@ function shareCreatorProfile() { if (navigator.clipboard) navigator.clipboard.wr
 
 async function loadComments(projectId) {
   const listEl = document.getElementById('ppCommentsList');
-  try { const q = query(collection(db, 'projects', projectId, 'comments'), orderBy('createdAt', 'desc')); const snapshot = await getDocs(q); document.getElementById('ppCommentsTitle').textContent = `Comments (${snapshot.size})`; if (snapshot.empty) { listEl.innerHTML = `<div class="comments-empty">No comments yet. Be the first to share your thoughts!</div>`; return; } let html = ''; snapshot.forEach(docSnap => { const c = docSnap.data(); const dateStr = c.createdAt?.toDate ? c.createdAt.toDate().toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '—'; const isOwner = window._fb.currentUser() && window._fb.currentUser().uid === c.authorId; html += `<div class="comment-item" data-comment-id="${docSnap.id}"><div class="comment-avatar">${(c.authorName || '?').slice(0, 2).toUpperCase()}</div><div class="comment-body"><div class="comment-author-row"><span class="comment-author">${escapeHtml(c.authorName || 'Anonymous')}</span>${isOwner ? `<button class="comment-delete-btn" onclick="deleteComment('${projectId}', '${docSnap.id}')">Delete</button>` : ''}</div><div class="comment-text">${escapeHtml(c.text || '')}</div><div class="comment-time">${dateStr}</div></div></div>`; }); listEl.innerHTML = html;
+  try { const q = query(collection(db, 'projects', projectId, 'comments'), orderBy('createdAt', 'desc')); const snapshot = await getDocs(q); document.getElementById('ppCommentsTitle').textContent = `Comments (${snapshot.size})`; if (snapshot.empty) { listEl.innerHTML = `<div class="comments-empty">No comments yet. Be the first to share your thoughts!</div>`; return; } let html = ''; snapshot.forEach(docSnap => { const c = docSnap.data(); const dateStr = c.createdAt?.toDate ? c.createdAt.toDate().toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '—'; const isOwner = window._fb.currentUser() && window._fb.currentUser().uid === c.authorId; const isAdmin = window._fb.isAdmin && window._fb.isAdmin(); const canDeleteComment = isOwner || isAdmin; html += `<div class="comment-item" data-comment-id="${docSnap.id}"><div class="comment-avatar">${(c.authorName || '?').slice(0, 2).toUpperCase()}</div><div class="comment-body"><div class="comment-author-row"><span class="comment-author">${escapeHtml(c.authorName || 'Anonymous')}</span>${canDeleteComment ? `<button class="comment-delete-btn" onclick="deleteComment('${projectId}', '${docSnap.id}')">${isOwner ? 'Delete' : 'Remove (Admin)'}</button>` : ''}</div><div class="comment-text">${escapeHtml(c.text || '')}</div><div class="comment-time">${dateStr}</div></div></div>`; }); listEl.innerHTML = html;
   } catch (err) { listEl.innerHTML = `<div class="comments-empty">Error loading comments</div>`; }
 }
 
@@ -929,4 +945,3 @@ window.shareCreatorProfile             = shareCreatorProfile;
 window.toggleFollowFromCreatorPage     = toggleFollowFromCreatorPage;
 window.openCreatorProfileFromProjectPage = openCreatorProfileFromProjectPage;
 window.viewMyPublicProfile             = viewMyPublicProfile;
-
