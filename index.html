@@ -1241,6 +1241,258 @@ footer { background: var(--surface); border-top: 1px solid var(--border); paddin
   .project-page-title { font-size: 1.6rem; }
   .dash-project-actions { flex-direction: column; }
 }
+
+/* =====================================================
+   DASHBOARD STYLES
+   ===================================================== */
+
+.dash-project-row {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem;
+  background: var(--surface);
+  border: 1px solid var(--border1);
+  border-radius: 8px;
+  margin-bottom: 0.75rem;
+  transition: border-color 0.2s;
+}
+.dash-project-row:hover {
+  border-color: var(--accent);
+}
+.dash-project-thumb {
+  width: 48px;
+  height: 48px;
+  border-radius: 8px;
+  background: var(--surface2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  flex-shrink: 0;
+}
+.dash-project-info {
+  flex: 1;
+  min-width: 0;
+}
+.dash-project-title {
+  font-family: var(--font-display);
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 0.25rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.dash-project-meta {
+  font-size: 0.72rem;
+  color: var(--text3);
+  font-family: var(--font-mono);
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+.dash-project-actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-shrink: 0;
+}
+.dash-action-btn {
+  font-size: 0.7rem;
+  padding: 0.35rem 0.75rem;
+  border: 1px solid var(--border2);
+  border-radius: 4px;
+  background: var(--surface2);
+  color: var(--text2);
+  cursor: pointer;
+  font-family: var(--font-mono);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  transition: all 0.2s;
+}
+.dash-action-btn:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+.dash-action-btn.primary {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+.dash-action-btn.danger {
+  border-color: rgba(239,68,68,0.3);
+  color: var(--red);
+}
+.dash-action-btn.danger:hover {
+  background: var(--red-dim);
+}
+
+/* Analytics bars */
+.analytics-bar-wrap {
+  margin-bottom: 1rem;
+}
+.analytics-bar-label {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.8rem;
+  color: var(--text2);
+  margin-bottom: 0.35rem;
+  font-family: var(--font-mono);
+}
+.analytics-bar-track {
+  height: 6px;
+  background: var(--surface2);
+  border-radius: 3px;
+  overflow: hidden;
+}
+.analytics-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent), var(--accent2));
+  border-radius: 3px;
+  transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Profile */
+.profile-avatar-wrap {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: var(--surface2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2rem;
+  color: var(--accent);
+  border: 2px solid var(--border1);
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+}
+.profile-avatar-wrap:hover {
+  border-color: var(--accent);
+}
+.profile-avatar-wrap input[type="file"] {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+/* Comments */
+.comments-empty {
+  text-align: center;
+  padding: 2rem;
+  color: var(--text3);
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+}
+.comment-item {
+  display: flex;
+  gap: 0.75rem;
+  padding: 1rem 0;
+  border-bottom: 1px solid var(--border1);
+}
+.comment-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--accent-dim);
+  color: var(--accent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.8rem;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+.comment-body {
+  flex: 1;
+}
+.comment-author-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.25rem;
+}
+.comment-author {
+  font-weight: 600;
+  font-size: 0.85rem;
+  color: var(--text);
+}
+.comment-delete-btn {
+  font-size: 0.65rem;
+  color: var(--red);
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-family: var(--font-mono);
+  opacity: 0.6;
+}
+.comment-delete-btn:hover {
+  opacity: 1;
+}
+.comment-text {
+  font-size: 0.85rem;
+  color: var(--text2);
+  line-height: 1.5;
+  word-break: break-word;
+}
+.comment-time {
+  font-size: 0.7rem;
+  color: var(--text3);
+  margin-top: 0.25rem;
+  font-family: var(--font-mono);
+}
+
+/* Notifications */
+.notif-empty {
+  text-align: center;
+  padding: 2rem;
+  color: var(--text3);
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+}
+.notif-item {
+  display: flex;
+  gap: 0.75rem;
+  padding: 0.875rem 1rem;
+  border-bottom: 1px solid var(--border1);
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.notif-item:hover {
+  background: var(--surface2);
+}
+.notif-item.unread {
+  background: rgba(16, 185, 129, 0.05);
+  border-left: 2px solid var(--accent);
+}
+.notif-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--surface2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.9rem;
+  flex-shrink: 0;
+}
+.notif-text {
+  flex: 1;
+  min-width: 0;
+}
+.notif-title {
+  font-size: 0.82rem;
+  color: var(--text);
+  line-height: 1.4;
+  word-break: break-word;
+}
+.notif-time {
+  font-size: 0.7rem;
+  color: var(--text3);
+  margin-top: 0.15rem;
+  font-family: var(--font-mono);
+}
 </style>
 <base target="_blank">
 </head>
@@ -2804,7 +3056,25 @@ footer { background: var(--surface); border-top: 1px solid var(--border); paddin
       logEvent(analytics, 'newsletter_subscribe');
     },
 
-    currentUser: () => currentUser
+    currentUser: () => currentUser,
+
+    // Expose Firebase modular functions for non-module scripts
+    serverTimestamp,
+    updateProfile,
+    increment,
+    doc,
+    setDoc,
+    getDoc,
+    updateDoc,
+    deleteDoc,
+    addDoc,
+    collection,
+    query,
+    where,
+    orderBy,
+    limit,
+    onSnapshot,
+    getDocs
   };
 
   function showAuthError(msg) {
@@ -2873,12 +3143,12 @@ async function loadDashboardProjects() {
   container.innerHTML = `<div style="text-align:center;padding:3rem;color:var(--text3);font-family:var(--font-mono);">// Loading your projects…</div>`;
   try {
     const { db, currentUser } = window._fb;
-    const q = query(
-      collection(db, 'projects'),
-      where('authorId', '==', currentUser().uid),
-      orderBy('createdAt', 'desc')
+    const q = window._fb.query(
+      window._fb.collection(db, 'projects'),
+      window._fb.where('authorId', '==', currentUser().uid),
+      window._fb.orderBy('createdAt', 'desc')
     );
-    const snapshot = await getDocs(q);
+    const snapshot = await window._fb.getDocs(q);
     if (snapshot.empty) {
       container.innerHTML = `
         <div style="text-align:center;padding:4rem 2rem;">
@@ -2943,12 +3213,12 @@ async function loadDashboardAnalytics() {
   }
   try {
     const { db, currentUser } = window._fb;
-    const q = query(
-      collection(db, 'projects'),
-      where('authorId', '==', currentUser().uid),
-      orderBy('createdAt', 'desc')
+    const q = window._fb.query(
+      window._fb.collection(db, 'projects'),
+      window._fb.where('authorId', '==', currentUser().uid),
+      window._fb.orderBy('createdAt', 'desc')
     );
-    const snapshot = await getDocs(q);
+    const snapshot = await window._fb.getDocs(q);
     if (snapshot.empty) {
       chartContainer.innerHTML = `<div style="text-align:center;padding:2rem;color:var(--text3);font-family:var(--font-mono);">// Publish projects to see analytics</div>`;
       document.getElementById('dStatViews').textContent = '0';
@@ -3001,7 +3271,7 @@ async function loadDashboardProfile() {
   const user = window._fb.currentUser();
   try {
     const { db } = window._fb;
-    const userDoc = await getDoc(doc(db, 'users', user.uid));
+    const userDoc = await window._fb.getDoc(window._fb.doc(db, 'users', user.uid));
     const data = userDoc.exists() ? userDoc.data() : {};
     document.getElementById('profileName').value = data.displayName || user.displayName || '';
     document.getElementById('profileUsername').value = data.username || '';
@@ -3048,11 +3318,11 @@ async function saveProfile() {
       github: document.getElementById('profileGithub').value.trim(),
       itch: document.getElementById('profileItch').value.trim(),
       website: document.getElementById('profileWebsite').value.trim(),
-      updatedAt: serverTimestamp()
+      updatedAt: window._fb.serverTimestamp()
     };
-    await setDoc(doc(db, 'users', currentUser().uid), updates, { merge: true });
+    await window._fb.setDoc(window._fb.doc(db, 'users', currentUser().uid), updates, { merge: true });
     if (updates.displayName) {
-      await updateProfile(currentUser(), { displayName: updates.displayName });
+      await window._fb.updateProfile(window._fb.currentUser(), { displayName: updates.displayName });
     }
     showToast('Profile saved! 🎉', 'success');
     const navAvatar = document.getElementById('navAvatar');
@@ -3077,8 +3347,8 @@ async function uploadAvatar(input) {
     const url = await window._fb.uploadFile(file);
     if (!url) return;
     const { db, currentUser } = window._fb;
-    await setDoc(doc(db, 'users', currentUser().uid), { photoURL: url }, { merge: true });
-    await updateProfile(currentUser(), { photoURL: url });
+    await window._fb.setDoc(window._fb.doc(db, 'users', currentUser().uid), { photoURL: url }, { merge: true });
+    await window._fb.updateProfile(window._fb.currentUser(), { photoURL: url });
     const avatarWrap = document.getElementById('profileAvatarWrap');
     const avatarEmoji = document.getElementById('profileAvatarEmoji');
     avatarWrap.innerHTML = `<img src="${url}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" onerror="this.remove();document.getElementById('profileAvatarEmoji').style.display='flex';">`;
@@ -3099,8 +3369,8 @@ async function openProjectPage(docId) {
   document.getElementById('ppCommentsList').innerHTML = '<div class="comments-loading" style="font-family:var(--font-mono);font-size:0.78rem;color:var(--text3);">// Loading comments…</div>';
   try {
     const { db, currentUser } = window._fb;
-    const docRef = doc(db, 'projects', docId);
-    const docSnap = await getDoc(docRef);
+    const docRef = window._fb.doc(db, 'projects', docId);
+    const docSnap = await window._fb.getDoc(docRef);
     if (!docSnap.exists()) {
       document.getElementById('ppTitle').textContent = 'Project Not Found';
       document.getElementById('ppDesc').textContent = 'This project may have been removed or the link is incorrect.';
@@ -3144,7 +3414,7 @@ async function openProjectPage(docId) {
     }
     await loadProjectAuthor(p.authorId, p.authorName);
     loadComments(docId);
-    await updateDoc(docRef, { views: increment(1) });
+    await window._fb.updateDoc(docRef, { views: window._fb.increment(1) });
     logEvent(analytics, 'project_view', { projectId: docId, title: p.title });
   } catch (err) {
     console.error('Project page error:', err);
@@ -3167,7 +3437,7 @@ async function loadProjectAuthor(authorId, fallbackName) {
       followBtn.style.display = 'none';
       return;
     }
-    const userDoc = await getDoc(doc(db, 'users', authorId));
+    const userDoc = await window._fb.getDoc(window._fb.doc(db, 'users', authorId));
     const data = userDoc.exists() ? userDoc.data() : {};
     const displayName = data.displayName || fallbackName || 'Creator';
     avatarEl.textContent = displayName.slice(0, 2).toUpperCase();
@@ -3177,7 +3447,7 @@ async function loadProjectAuthor(authorId, fallbackName) {
     subEl.textContent = `${specialty}${location}`;
     if (currentUser() && currentUser().uid !== authorId) {
       followBtn.style.display = 'block';
-      const followDoc = await getDoc(doc(db, 'follows', `${currentUser().uid}_${authorId}`));
+      const followDoc = await window._fb.getDoc(window._fb.doc(db, 'follows', `${currentUser().uid}_${authorId}`));
       if (followDoc.exists()) {
         followBtn.textContent = 'Following ✓';
         followBtn.classList.add('following');
@@ -3215,31 +3485,31 @@ async function toggleFollowCreator() {
   if (!authorId) return;
   const { db, currentUser } = window._fb;
   const followId = `${currentUser().uid}_${authorId}`;
-  const followRef = doc(db, 'follows', followId);
+  const followRef = window._fb.doc(db, 'follows', followId);
   try {
-    const followDoc = await getDoc(followRef);
+    const followDoc = await window._fb.getDoc(followRef);
     if (followDoc.exists()) {
-      await deleteDoc(followRef);
+      await window._fb.deleteDoc(followRef);
       btn.textContent = 'Follow';
       btn.classList.remove('following');
       showToast('Unfollowed', 'info');
     } else {
-      await setDoc(followRef, {
+      await window._fb.setDoc(followRef, {
         followerId: currentUser().uid,
         followingId: authorId,
-        createdAt: serverTimestamp()
+        createdAt: window._fb.serverTimestamp()
       });
       btn.textContent = 'Following ✓';
       btn.classList.add('following');
       showToast('Now following!', 'success');
-      await addDoc(collection(db, 'notifications'), {
+      await window._fb.addDoc(window._fb.collection(db, 'notifications'), {
         recipientId: authorId,
         senderId: currentUser().uid,
         senderName: currentUser().displayName || 'Someone',
         type: 'follow',
         message: `${currentUser().displayName || 'Someone'} started following you`,
         read: false,
-        createdAt: serverTimestamp()
+        createdAt: window._fb.serverTimestamp()
       });
     }
   } catch (err) {
@@ -3256,11 +3526,11 @@ async function loadComments(projectId) {
   const listEl = document.getElementById('ppCommentsList');
   try {
     const { db } = window._fb;
-    const q = query(
-      collection(db, 'projects', projectId, 'comments'),
-      orderBy('createdAt', 'desc')
+    const q = window._fb.query(
+      window._fb.collection(db, 'projects', projectId, 'comments'),
+      window._fb.orderBy('createdAt', 'desc')
     );
-    const snapshot = await getDocs(q);
+    const snapshot = await window._fb.getDocs(q);
     document.getElementById('ppCommentsTitle').textContent = `Comments (${snapshot.size})`;
     if (snapshot.empty) {
       listEl.innerHTML = `<div class="comments-empty">No comments yet. Be the first to share your thoughts!</div>`;
@@ -3304,22 +3574,22 @@ async function submitComment() {
   try {
     const { db, currentUser } = window._fb;
     const user = currentUser();
-    await addDoc(collection(db, 'projects', projectId, 'comments'), {
+    await window._fb.addDoc(window._fb.collection(db, 'projects', projectId, 'comments'), {
       text: text,
       authorId: user.uid,
       authorName: user.displayName || 'Anonymous',
-      createdAt: serverTimestamp()
+      createdAt: window._fb.serverTimestamp()
     });
-    await updateDoc(doc(db, 'projects', projectId), { commentsCount: increment(1) });
+    await window._fb.updateDoc(window._fb.doc(db, 'projects', projectId), { commentsCount: window._fb.increment(1) });
     input.value = '';
     input.style.height = 'auto';
     showToast('Comment posted!', 'success');
     loadComments(projectId);
-    const projectDoc = await getDoc(doc(db, 'projects', projectId));
+    const projectDoc = await window._fb.getDoc(window._fb.doc(db, 'projects', projectId));
     if (projectDoc.exists()) {
       const p = projectDoc.data();
       if (p.authorId && p.authorId !== user.uid) {
-        await addDoc(collection(db, 'notifications'), {
+        await window._fb.addDoc(window._fb.collection(db, 'notifications'), {
           recipientId: p.authorId,
           senderId: user.uid,
           senderName: user.displayName || 'Someone',
@@ -3328,7 +3598,7 @@ async function submitComment() {
           projectTitle: p.title || 'a project',
           message: `${user.displayName || 'Someone'} commented on "${p.title || 'your project'}"`,
           read: false,
-          createdAt: serverTimestamp()
+          createdAt: window._fb.serverTimestamp()
         });
       }
     }
@@ -3341,8 +3611,8 @@ async function deleteComment(projectId, commentId) {
   if (!confirm('Delete this comment?')) return;
   try {
     const { db } = window._fb;
-    await deleteDoc(doc(db, 'projects', projectId, 'comments', commentId));
-    await updateDoc(doc(db, 'projects', projectId), { commentsCount: increment(-1) });
+    await window._fb.deleteDoc(window._fb.doc(db, 'projects', projectId, 'comments', commentId));
+    await window._fb.updateDoc(window._fb.doc(db, 'projects', projectId), { commentsCount: window._fb.increment(-1) });
     showToast('Comment deleted', 'success');
     loadComments(projectId);
   } catch (err) {
@@ -3369,13 +3639,13 @@ async function loadNotifications() {
   const { db, currentUser } = window._fb;
   const user = currentUser();
   if (notifUnsubscribe) notifUnsubscribe();
-  const q = query(
-    collection(db, 'notifications'),
-    where('recipientId', '==', user.uid),
-    orderBy('createdAt', 'desc'),
-    limit(20)
+  const q = window._fb.query(
+    window._fb.collection(db, 'notifications'),
+    window._fb.where('recipientId', '==', user.uid),
+    window._fb.orderBy('createdAt', 'desc'),
+    window._fb.limit(20)
   );
-  notifUnsubscribe = onSnapshot(q, (snapshot) => {
+  notifUnsubscribe = window._fb.onSnapshot(q, (snapshot) => {
     const listEl = document.getElementById('notifList');
     const badge = document.getElementById('notifBadge');
     let unreadCount = 0;
@@ -3416,7 +3686,7 @@ async function loadNotifications() {
 async function handleNotifClick(notifId, type, projectId) {
   try {
     const { db } = window._fb;
-    await updateDoc(doc(db, 'notifications', notifId), { read: true });
+    await window._fb.updateDoc(window._fb.doc(db, 'notifications', notifId), { read: true });
     document.getElementById('notifPanel').classList.remove('open');
     if (type === 'comment' && projectId) {
       openProjectPage(projectId);
@@ -3434,15 +3704,15 @@ async function markAllRead() {
   if (!window._fb || !window._fb.currentUser()) return;
   try {
     const { db, currentUser } = window._fb;
-    const q = query(
-      collection(db, 'notifications'),
-      where('recipientId', '==', currentUser().uid),
-      where('read', '==', false)
+    const q = window._fb.query(
+      window._fb.collection(db, 'notifications'),
+      window._fb.where('recipientId', '==', currentUser().uid),
+      window._fb.where('read', '==', false)
     );
-    const snapshot = await getDocs(q);
+    const snapshot = await window._fb.getDocs(q);
     const batch = [];
     snapshot.forEach(docSnap => {
-      batch.push(updateDoc(doc(db, 'notifications', docSnap.id), { read: true }));
+      batch.push(window._fb.updateDoc(window._fb.doc(db, 'notifications', docSnap.id), { read: true }));
     });
     await Promise.all(batch);
     showToast('All notifications marked as read', 'success');
