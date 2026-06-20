@@ -116,6 +116,56 @@ function switchTab(btn, type) {
   if (window._fb) window._fb.loadProjects(fsType);
 }
 
+/* Top nav links: Browse / Top Rated / New & Trending / Free / Creators / Devlogs */
+function setActiveNavLink(el) {
+  document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+  if (el) el.classList.add('active');
+}
+
+function runDiscoverFilter(filterType, showStaticCards) {
+  document.querySelectorAll('.tab-btn').forEach(t => t.classList.remove('active'));
+  const allTabBtn = document.querySelector('.tab-btn[onclick*="\'all\'"]');
+  if (filterType === 'all' && allTabBtn) allTabBtn.classList.add('active');
+  document.querySelectorAll('#mainGrid .firestore-card').forEach(c => c.remove());
+  const grid = document.getElementById('mainGrid');
+  const sk = document.createElement('div');
+  sk.id = 'skeletonCard';
+  sk.className = 'card skeleton-card';
+  sk.style.cssText = 'opacity:0.4;pointer-events:none;';
+  sk.innerHTML = `<div class="card-thumb"><div class="card-thumb-bg" style="background:var(--surface2);">⏳</div></div><div class="card-body"><div class="card-title" style="color:var(--text3);font-family:var(--font-mono);">// Loading…</div></div>`;
+  grid.prepend(sk);
+  document.querySelectorAll('#mainGrid .static-card').forEach(c => {
+    c.style.display = showStaticCards ? '' : 'none';
+  });
+  if (window._fb) window._fb.loadProjects(filterType);
+}
+
+function navGoBrowse(el) {
+  setActiveNavLink(el);
+  runDiscoverFilter('all', true);
+}
+
+function navGoNewTrending(el) {
+  setActiveNavLink(el);
+  runDiscoverFilter('all', true); // newest first is already the default sort
+}
+
+function navGoTopRated(el) {
+  setActiveNavLink(el);
+  runDiscoverFilter('top-rated', false);
+}
+
+function navGoFree(el) {
+  setActiveNavLink(el);
+  runDiscoverFilter('free', false);
+}
+
+function navGoSection(el, sectionId) {
+  setActiveNavLink(el);
+  const target = document.getElementById(sectionId);
+  if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
 function toggleChip(el) {
   document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
   el.classList.add('active');
