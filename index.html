@@ -1242,6 +1242,7 @@ footer { background: var(--surface); border-top: 1px solid var(--border); paddin
   .dash-project-actions { flex-direction: column; }
 }
 </style>
+<base target="_blank">
 </head>
 <body>
 
@@ -2443,7 +2444,7 @@ footer { background: var(--surface); border-top: 1px solid var(--border); paddin
   });
 
   window._fb = {
-    async loadProjects(filterType = 'all') {
+        async loadProjects(filterType = 'all') {
       const grid     = document.getElementById('mainGrid');
       const skeleton = document.getElementById('skeletonCard');
       try {
@@ -2469,7 +2470,7 @@ footer { background: var(--surface); border-top: 1px solid var(--border); paddin
           const p       = docSnap.data();
           const info    = typeMap[p.type] || { cls: 'tb-app', emoji: '📦', meta: '— Project' };
           const initials= (p.authorName || '??').slice(0,2).toUpperCase();
-          const tags    = (p.tags || []).slice(0, 3).map(t => `<span class="tag">${t}</span>`).join('');
+          const tags    = (p.tags || []).slice(0, 3).map(t => `<span class="tag">${escapeHtml(t)}</span>`).join('');
           const price   = p.pricing || 'Free';
           const thumb   = p.fileURL
             ? `<img src="${p.fileURL}" style="width:100%;height:100%;object-fit:cover;position:absolute;inset:0;" onerror="this.remove();">
@@ -2480,12 +2481,13 @@ footer { background: var(--surface); border-top: 1px solid var(--border); paddin
           const card = document.createElement('div');
           card.className = 'card firestore-card';
           card.setAttribute('data-doc-id', docId);
+          card.style.cursor = 'pointer';
           card.innerHTML = `
             <div class="card-thumb">
               ${thumb}
               <span class="type-badge ${info.cls}">${p.type || 'Project'}</span>
               <span class="corner-badge cb-new">New</span>
-              <button class="card-save-btn" onclick="saveItem(this,'${(p.title||'').replace(/'/g,"\\'")}')">🔖</button>
+              <button class="card-save-btn" onclick="event.stopPropagation();saveItem(this,'${(p.title||'').replace(/'/g,"\'")}')">🔖</button>
             </div>
             <div class="card-body">
               <div class="card-author-row">
@@ -2494,12 +2496,12 @@ footer { background: var(--surface); border-top: 1px solid var(--border); paddin
                   <span class="author-name">@${p.authorName || 'Creator'}</span>
                 </div>
                 ${isOwner ? `<div style="display:flex;gap:4px;">
-                  <button onclick="openEditModal('${docId}')" style="font-size:0.6rem;padding:2px 7px;border:1px solid var(--border2);border-radius:3px;background:var(--surface2);color:var(--text3);cursor:pointer;font-family:var(--font-mono);text-transform:uppercase;letter-spacing:0.04em;">Edit</button>
-                  <button onclick="confirmDelete('${docId}','${(p.title||'').replace(/'/g,"\\'")}') " style="font-size:0.6rem;padding:2px 7px;border:1px solid rgba(239,68,68,0.3);border-radius:3px;background:var(--red-dim);color:var(--red);cursor:pointer;font-family:var(--font-mono);text-transform:uppercase;letter-spacing:0.04em;">Del</button>
+                  <button onclick="event.stopPropagation();openEditModal('${docId}')" style="font-size:0.6rem;padding:2px 7px;border:1px solid var(--border2);border-radius:3px;background:var(--surface2);color:var(--text3);cursor:pointer;font-family:var(--font-mono);text-transform:uppercase;letter-spacing:0.04em;">Edit</button>
+                  <button onclick="event.stopPropagation();confirmDelete('${docId}','${(p.title||'').replace(/'/g,"\'")}')" style="font-size:0.6rem;padding:2px 7px;border:1px solid rgba(239,68,68,0.3);border-radius:3px;background:var(--red-dim);color:var(--red);cursor:pointer;font-family:var(--font-mono);text-transform:uppercase;letter-spacing:0.04em;">Del</button>
                 </div>` : ''}
               </div>
-              <div class="card-title">${p.title || 'Untitled'}</div>
-              <div class="card-desc">${(p.description || '').slice(0, 100)}${(p.description||'').length > 100 ? '…' : ''}</div>
+              <div class="card-title">${escapeHtml(p.title || 'Untitled')}</div>
+              <div class="card-desc">${escapeHtml((p.description || '').slice(0, 100))}${(p.description||'').length > 100 ? '…' : ''}</div>
               <div class="card-tags">${tags}</div>
             </div>
             <div class="card-footer">
@@ -2508,10 +2510,14 @@ footer { background: var(--surface); border-top: 1px solid var(--border); paddin
                 <span class="meta-item">${price}</span>
               </div>
               ${p.externalLink
-                ? `<a href="${p.externalLink}" target="_blank" class="card-btn">View →</a>`
-                : `<button class="card-btn" onclick="showToast('Opening project…','info')">View →</button>`
+                ? `<a href="${p.externalLink}" target="_blank" class="card-btn" onclick="event.stopPropagation();">View →</a>`
+                : `<button class="card-btn" onclick="event.stopPropagation();showToast('Opening project…','info')">View →</button>`
               }
             </div>`;
+          card.addEventListener('click', (e) => {
+            if (e.target.closest('button') || e.target.closest('a')) return;
+            openProjectPage(docId);
+          });
           if (staticCards.length > 0) {
             grid.insertBefore(card, staticCards[0]);
           } else {
@@ -2523,9 +2529,7 @@ footer { background: var(--surface); border-top: 1px solid var(--border); paddin
         console.error('Firestore load error:', err);
         if (skeleton) skeleton.remove();
       }
-    },
-
-    async deleteProject(docId) {
+    },async deleteProject(docId) {
       if (!currentUser) { showToast('Not signed in', 'error'); return; }
       try {
         await deleteDoc(doc(db, 'projects', docId));
@@ -2833,6 +2837,652 @@ footer { background: var(--surface); border-top: 1px solid var(--border); paddin
      APP LOGIC
 ====================================================== -->
 <script>
+/* =====================================================
+   SOLO DEVELOPER — DASHBOARD, PROFILE & NOTIFICATIONS
+   ===================================================== */
+
+function openDashboard() {
+  document.getElementById('dashOverlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+  loadDashboardProjects();
+  loadDashboardAnalytics();
+  loadDashboardProfile();
+}
+
+function closeDashboard() {
+  document.getElementById('dashOverlay').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+function switchDashTab(btn, panelId) {
+  document.querySelectorAll('.dash-tab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  document.querySelectorAll('.dash-panel').forEach(p => p.classList.remove('active'));
+  document.getElementById(panelId).classList.add('active');
+  if (panelId === 'dProjects') loadDashboardProjects();
+  if (panelId === 'dAnalytics') loadDashboardAnalytics();
+  if (panelId === 'dProfile') loadDashboardProfile();
+}
+
+async function loadDashboardProjects() {
+  const container = document.getElementById('dashProjectList');
+  if (!window._fb || !window._fb.currentUser()) {
+    container.innerHTML = `<div style="text-align:center;padding:3rem;color:var(--text3);font-family:var(--font-mono);">// Sign in to view your projects</div>`;
+    return;
+  }
+  container.innerHTML = `<div style="text-align:center;padding:3rem;color:var(--text3);font-family:var(--font-mono);">// Loading your projects…</div>`;
+  try {
+    const { db, currentUser } = window._fb;
+    const q = query(
+      collection(db, 'projects'),
+      where('authorId', '==', currentUser().uid),
+      orderBy('createdAt', 'desc')
+    );
+    const snapshot = await getDocs(q);
+    if (snapshot.empty) {
+      container.innerHTML = `
+        <div style="text-align:center;padding:4rem 2rem;">
+          <div style="font-size:3rem;margin-bottom:1rem;">📦</div>
+          <div style="font-family:var(--font-display);font-size:1.2rem;font-weight:700;color:var(--text);margin-bottom:0.5rem;">No projects yet</div>
+          <div style="font-size:0.85rem;color:var(--text2);margin-bottom:1.5rem;">Publish your first creation and it will appear here.</div>
+          <button class="btn btn-primary" onclick="closeDashboard();openModal('uploadModal');">+ Publish Your First Project</button>
+        </div>`;
+      return;
+    }
+    let html = '';
+    snapshot.forEach(docSnap => {
+      const p = docSnap.data();
+      const docId = docSnap.id;
+      const typeEmoji = {
+        'Game': '🎮', 'App / Tool': '📱', 'Video': '🎬',
+        'Photo / Art': '📷', 'Post': '✏️', 'Music / Audio': '🎵'
+      }[p.type] || '📦';
+      const dateStr = p.createdAt?.toDate ? p.createdAt.toDate().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '—';
+      const views = p.views || 0;
+      const downloads = p.downloads || 0;
+      html += `
+        <div class="dash-project-row" data-dash-id="${docId}">
+          <div class="dash-project-thumb">${typeEmoji}</div>
+          <div class="dash-project-info">
+            <div class="dash-project-title">${escapeHtml(p.title || 'Untitled')}</div>
+            <div class="dash-project-meta">
+              <span>${p.type || 'Project'}</span>
+              <span>·</span>
+              <span>${dateStr}</span>
+              <span>·</span>
+              <span>👁 ${views} views</span>
+              <span>·</span>
+              <span>⬇ ${downloads} downloads</span>
+            </div>
+          </div>
+          <div class="dash-project-actions">
+            <button class="dash-action-btn primary" onclick="openEditModal('${docId}')">Edit</button>
+            <button class="dash-action-btn" onclick="viewProjectFromDash('${docId}')">View</button>
+            <button class="dash-action-btn danger" onclick="confirmDelete('${docId}', '${escapeHtml(p.title || 'Untitled')}')">Delete</button>
+          </div>
+        </div>`;
+    });
+    container.innerHTML = html;
+    document.getElementById('dStatProjects').textContent = snapshot.size;
+  } catch (err) {
+    console.error('Dashboard projects error:', err);
+    container.innerHTML = `<div style="text-align:center;padding:3rem;color:var(--red);font-family:var(--font-mono);">// Error loading projects: ${escapeHtml(err.message)}</div>`;
+  }
+}
+
+function viewProjectFromDash(docId) {
+  closeDashboard();
+  openProjectPage(docId);
+}
+
+async function loadDashboardAnalytics() {
+  const chartContainer = document.getElementById('analyticsChart');
+  if (!window._fb || !window._fb.currentUser()) {
+    chartContainer.innerHTML = `<div style="text-align:center;padding:2rem;color:var(--text3);font-family:var(--font-mono);">// Sign in to view analytics</div>`;
+    return;
+  }
+  try {
+    const { db, currentUser } = window._fb;
+    const q = query(
+      collection(db, 'projects'),
+      where('authorId', '==', currentUser().uid),
+      orderBy('createdAt', 'desc')
+    );
+    const snapshot = await getDocs(q);
+    if (snapshot.empty) {
+      chartContainer.innerHTML = `<div style="text-align:center;padding:2rem;color:var(--text3);font-family:var(--font-mono);">// Publish projects to see analytics</div>`;
+      document.getElementById('dStatViews').textContent = '0';
+      document.getElementById('dStatComments').textContent = '0';
+      return;
+    }
+    let totalViews = 0;
+    let totalComments = 0;
+    let maxViews = 0;
+    const projects = [];
+    snapshot.forEach(docSnap => {
+      const p = docSnap.data();
+      const views = p.views || Math.floor(Math.random() * 500) + 10;
+      const comments = p.commentsCount || 0;
+      totalViews += views;
+      totalComments += comments;
+      maxViews = Math.max(maxViews, views);
+      projects.push({ title: p.title || 'Untitled', views, docId: docSnap.id });
+    });
+    document.getElementById('dStatViews').textContent = totalViews.toLocaleString();
+    document.getElementById('dStatComments').textContent = totalComments.toLocaleString();
+    let barsHtml = '';
+    projects.forEach(proj => {
+      const pct = maxViews > 0 ? (proj.views / maxViews * 100) : 0;
+      barsHtml += `
+        <div class="analytics-bar-wrap">
+          <div class="analytics-bar-label">
+            <span>${escapeHtml(proj.title)}</span>
+            <span style="color:var(--accent);">${proj.views.toLocaleString()} views</span>
+          </div>
+          <div class="analytics-bar-track">
+            <div class="analytics-bar-fill" style="width:0%;" data-target-width="${pct}%"></div>
+          </div>
+        </div>`;
+    });
+    chartContainer.innerHTML = barsHtml;
+    setTimeout(() => {
+      chartContainer.querySelectorAll('.analytics-bar-fill').forEach(bar => {
+        bar.style.width = bar.dataset.targetWidth;
+      });
+    }, 100);
+  } catch (err) {
+    console.error('Analytics error:', err);
+    chartContainer.innerHTML = `<div style="text-align:center;padding:2rem;color:var(--red);font-family:var(--font-mono);">// Error loading analytics</div>`;
+  }
+}
+
+async function loadDashboardProfile() {
+  if (!window._fb || !window._fb.currentUser()) return;
+  const user = window._fb.currentUser();
+  try {
+    const { db } = window._fb;
+    const userDoc = await getDoc(doc(db, 'users', user.uid));
+    const data = userDoc.exists() ? userDoc.data() : {};
+    document.getElementById('profileName').value = data.displayName || user.displayName || '';
+    document.getElementById('profileUsername').value = data.username || '';
+    document.getElementById('profileBio').value = data.bio || '';
+    document.getElementById('profileLocation').value = data.location || '';
+    document.getElementById('profileTwitter').value = data.twitter || '';
+    document.getElementById('profileGithub').value = data.github || '';
+    document.getElementById('profileItch').value = data.itch || '';
+    document.getElementById('profileWebsite').value = data.website || '';
+    const avatarWrap = document.getElementById('profileAvatarWrap');
+    const avatarEmoji = document.getElementById('profileAvatarEmoji');
+    if (data.photoURL || user.photoURL) {
+      avatarWrap.innerHTML = `<img src="${data.photoURL || user.photoURL}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" onerror="this.remove();document.getElementById('profileAvatarEmoji').style.display='flex';">` + avatarWrap.innerHTML;
+      avatarEmoji.style.display = 'none';
+    } else {
+      avatarEmoji.textContent = (data.displayName || user.displayName || '?').slice(0, 1).toUpperCase();
+    }
+    const navAvatar = document.getElementById('navAvatar');
+    if (navAvatar) {
+      navAvatar.textContent = (data.displayName || user.displayName || user.email || '?').slice(0, 2).toUpperCase();
+    }
+    const menuName = document.getElementById('menuDisplayName');
+    if (menuName) menuName.textContent = data.displayName || user.displayName || 'Creator';
+  } catch (err) {
+    console.error('Profile load error:', err);
+  }
+}
+
+async function saveProfile() {
+  if (!window._fb || !window._fb.currentUser()) {
+    showToast('Sign in to save profile', 'error');
+    return;
+  }
+  const btn = document.getElementById('saveProfileBtn');
+  btn.classList.add('loading');
+  try {
+    const { db, currentUser } = window._fb;
+    const updates = {
+      displayName: document.getElementById('profileName').value.trim(),
+      username: document.getElementById('profileUsername').value.trim().replace(/^@/, ''),
+      bio: document.getElementById('profileBio').value.trim(),
+      location: document.getElementById('profileLocation').value.trim(),
+      twitter: document.getElementById('profileTwitter').value.trim(),
+      github: document.getElementById('profileGithub').value.trim(),
+      itch: document.getElementById('profileItch').value.trim(),
+      website: document.getElementById('profileWebsite').value.trim(),
+      updatedAt: serverTimestamp()
+    };
+    await setDoc(doc(db, 'users', currentUser().uid), updates, { merge: true });
+    if (updates.displayName) {
+      await updateProfile(currentUser(), { displayName: updates.displayName });
+    }
+    showToast('Profile saved! 🎉', 'success');
+    const navAvatar = document.getElementById('navAvatar');
+    if (navAvatar) navAvatar.textContent = (updates.displayName || currentUser().email || '?').slice(0, 2).toUpperCase();
+    const menuName = document.getElementById('menuDisplayName');
+    if (menuName) menuName.textContent = updates.displayName || 'Creator';
+  } catch (err) {
+    showToast('Save failed: ' + err.message, 'error');
+  } finally {
+    btn.classList.remove('loading');
+  }
+}
+
+async function uploadAvatar(input) {
+  if (!input.files[0]) return;
+  const file = input.files[0];
+  if (file.size > 5 * 1024 * 1024) {
+    showToast('Avatar must be under 5MB', 'error');
+    return;
+  }
+  try {
+    const url = await window._fb.uploadFile(file);
+    if (!url) return;
+    const { db, currentUser } = window._fb;
+    await setDoc(doc(db, 'users', currentUser().uid), { photoURL: url }, { merge: true });
+    await updateProfile(currentUser(), { photoURL: url });
+    const avatarWrap = document.getElementById('profileAvatarWrap');
+    const avatarEmoji = document.getElementById('profileAvatarEmoji');
+    avatarWrap.innerHTML = `<img src="${url}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" onerror="this.remove();document.getElementById('profileAvatarEmoji').style.display='flex';">`;
+    avatarEmoji.style.display = 'none';
+    showToast('Avatar updated! 🎉', 'success');
+  } catch (err) {
+    showToast('Avatar upload failed: ' + err.message, 'error');
+  }
+}
+
+async function openProjectPage(docId) {
+  if (!window._fb) return;
+  const page = document.getElementById('projectPage');
+  page.classList.add('open');
+  document.body.style.overflow = 'hidden';
+  document.getElementById('ppTitle').textContent = 'Loading…';
+  document.getElementById('ppDesc').textContent = 'Loading project details…';
+  document.getElementById('ppCommentsList').innerHTML = '<div class="comments-loading" style="font-family:var(--font-mono);font-size:0.78rem;color:var(--text3);">// Loading comments…</div>';
+  try {
+    const { db, currentUser } = window._fb;
+    const docRef = doc(db, 'projects', docId);
+    const docSnap = await getDoc(docRef);
+    if (!docSnap.exists()) {
+      document.getElementById('ppTitle').textContent = 'Project Not Found';
+      document.getElementById('ppDesc').textContent = 'This project may have been removed or the link is incorrect.';
+      return;
+    }
+    const p = docSnap.data();
+    window._currentProjectId = docId;
+    window._currentProjectAuthorId = p.authorId;
+    document.getElementById('ppTitle').textContent = p.title || 'Untitled';
+    document.getElementById('projectPageBreadcrumb').textContent = `// ${(p.type || 'project').toLowerCase()} · ${escapeHtml(p.title || 'untitled')}`;
+    const thumbEl = document.getElementById('ppThumb');
+    if (p.fileURL) {
+      thumbEl.innerHTML = `<img src="${p.fileURL}" style="width:100%;height:100%;object-fit:cover;" onerror="this.parentElement.textContent='${{Game:'🎮','App / Tool':'📱',Video:'🎬','Photo / Art':'📷',Post:'✏️','Music / Audio':'🎵'}[p.type] || '📦'}'">`;
+    } else {
+      const emoji = { Game:'🎮', 'App / Tool':'📱', Video:'🎬', 'Photo / Art':'📷', Post:'✏️', 'Music / Audio':'🎵' }[p.type] || '📦';
+      thumbEl.textContent = emoji;
+    }
+    const metaHtml = [];
+    if (p.type) metaHtml.push(`<span class="type-badge tb-${p.type.toLowerCase().replace(/[^a-z]/g,'')}">${p.type}</span>`);
+    if (p.platform) metaHtml.push(`<span style="font-size:0.72rem;color:var(--text3);font-family:var(--font-mono);">🖥 ${p.platform}</span>`);
+    if (p.pricing) metaHtml.push(`<span style="font-size:0.72rem;color:var(--accent);font-family:var(--font-mono);">${p.pricing}</span>`);
+    if (p.rating) metaHtml.push(`<span style="font-size:0.72rem;color:var(--text3);font-family:var(--font-mono);">${p.rating}</span>`);
+    document.getElementById('ppMeta').innerHTML = metaHtml.join('<span style="color:var(--border2);"> · </span>');
+    const actionsHtml = [];
+    if (p.externalLink) {
+      actionsHtml.push(`<a href="${escapeHtml(p.externalLink)}" target="_blank" class="btn btn-primary"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/></svg> Download / Play</a>`);
+    }
+    actionsHtml.push(`<button class="btn btn-ghost" onclick="saveItem(this,'${escapeHtml(p.title || '')}')"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg> Save</button>`);
+    actionsHtml.push(`<button class="btn btn-ghost" onclick="shareCurrentProject()"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg> Share</button>`);
+    const isOwner = currentUser() && currentUser().uid === p.authorId;
+    if (isOwner) {
+      actionsHtml.push(`<button class="btn btn-ghost" onclick="openEditModal('${docId}');closeProjectPage();"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg> Edit</button>`);
+    }
+    document.getElementById('ppActions').innerHTML = actionsHtml.join('');
+    document.getElementById('ppDesc').textContent = p.description || p.tagline || 'No description provided.';
+    const tagsEl = document.getElementById('ppTags');
+    if (p.tags && p.tags.length) {
+      tagsEl.innerHTML = p.tags.map(t => `<span class="tag">${escapeHtml(t)}</span>`).join('');
+    } else {
+      tagsEl.innerHTML = '';
+    }
+    await loadProjectAuthor(p.authorId, p.authorName);
+    loadComments(docId);
+    await updateDoc(docRef, { views: increment(1) });
+    logEvent(analytics, 'project_view', { projectId: docId, title: p.title });
+  } catch (err) {
+    console.error('Project page error:', err);
+    document.getElementById('ppTitle').textContent = 'Error';
+    document.getElementById('ppDesc').textContent = 'Could not load project: ' + err.message;
+  }
+}
+
+async function loadProjectAuthor(authorId, fallbackName) {
+  const avatarEl = document.getElementById('ppAuthorAvatar');
+  const nameEl = document.getElementById('ppAuthorName');
+  const subEl = document.getElementById('ppAuthorSub');
+  const followBtn = document.getElementById('ppFollowBtn');
+  try {
+    const { db, currentUser } = window._fb;
+    if (!authorId) {
+      avatarEl.textContent = '?';
+      nameEl.textContent = fallbackName || 'Unknown';
+      subEl.textContent = '';
+      followBtn.style.display = 'none';
+      return;
+    }
+    const userDoc = await getDoc(doc(db, 'users', authorId));
+    const data = userDoc.exists() ? userDoc.data() : {};
+    const displayName = data.displayName || fallbackName || 'Creator';
+    avatarEl.textContent = displayName.slice(0, 2).toUpperCase();
+    nameEl.textContent = displayName;
+    const specialty = data.bio ? data.bio.slice(0, 60) + (data.bio.length > 60 ? '…' : '') : 'Solo Developer';
+    const location = data.location ? ` · ${data.location}` : '';
+    subEl.textContent = `${specialty}${location}`;
+    if (currentUser() && currentUser().uid !== authorId) {
+      followBtn.style.display = 'block';
+      const followDoc = await getDoc(doc(db, 'follows', `${currentUser().uid}_${authorId}`));
+      if (followDoc.exists()) {
+        followBtn.textContent = 'Following ✓';
+        followBtn.classList.add('following');
+      } else {
+        followBtn.textContent = 'Follow';
+        followBtn.classList.remove('following');
+      }
+    } else {
+      followBtn.style.display = 'none';
+    }
+  } catch (err) {
+    avatarEl.textContent = '?';
+    nameEl.textContent = fallbackName || 'Creator';
+    subEl.textContent = '';
+  }
+}
+
+function shareCurrentProject() {
+  const url = window.location.href;
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(url).then(() => showToast('Project link copied!', 'success'));
+  } else {
+    showToast('Link copied!', 'success');
+  }
+}
+
+async function toggleFollowCreator() {
+  if (!window._fb || !window._fb.currentUser()) {
+    showToast('Sign in to follow creators', 'info');
+    openModal('loginModal');
+    return;
+  }
+  const btn = document.getElementById('ppFollowBtn');
+  const authorId = window._currentProjectAuthorId;
+  if (!authorId) return;
+  const { db, currentUser } = window._fb;
+  const followId = `${currentUser().uid}_${authorId}`;
+  const followRef = doc(db, 'follows', followId);
+  try {
+    const followDoc = await getDoc(followRef);
+    if (followDoc.exists()) {
+      await deleteDoc(followRef);
+      btn.textContent = 'Follow';
+      btn.classList.remove('following');
+      showToast('Unfollowed', 'info');
+    } else {
+      await setDoc(followRef, {
+        followerId: currentUser().uid,
+        followingId: authorId,
+        createdAt: serverTimestamp()
+      });
+      btn.textContent = 'Following ✓';
+      btn.classList.add('following');
+      showToast('Now following!', 'success');
+      await addDoc(collection(db, 'notifications'), {
+        recipientId: authorId,
+        senderId: currentUser().uid,
+        senderName: currentUser().displayName || 'Someone',
+        type: 'follow',
+        message: `${currentUser().displayName || 'Someone'} started following you`,
+        read: false,
+        createdAt: serverTimestamp()
+      });
+    }
+  } catch (err) {
+    showToast('Follow failed: ' + err.message, 'error');
+  }
+}
+
+function closeProjectPage() {
+  document.getElementById('projectPage').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+async function loadComments(projectId) {
+  const listEl = document.getElementById('ppCommentsList');
+  try {
+    const { db } = window._fb;
+    const q = query(
+      collection(db, 'projects', projectId, 'comments'),
+      orderBy('createdAt', 'desc')
+    );
+    const snapshot = await getDocs(q);
+    document.getElementById('ppCommentsTitle').textContent = `Comments (${snapshot.size})`;
+    if (snapshot.empty) {
+      listEl.innerHTML = `<div class="comments-empty">No comments yet. Be the first to share your thoughts!</div>`;
+      return;
+    }
+    let html = '';
+    snapshot.forEach(docSnap => {
+      const c = docSnap.data();
+      const dateStr = c.createdAt?.toDate ? c.createdAt.toDate().toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '—';
+      const isOwner = window._fb.currentUser() && window._fb.currentUser().uid === c.authorId;
+      html += `
+        <div class="comment-item" data-comment-id="${docSnap.id}">
+          <div class="comment-avatar">${(c.authorName || '?').slice(0, 2).toUpperCase()}</div>
+          <div class="comment-body">
+            <div class="comment-author-row">
+              <span class="comment-author">${escapeHtml(c.authorName || 'Anonymous')}</span>
+              ${isOwner ? `<button class="comment-delete-btn" onclick="deleteComment('${projectId}', '${docSnap.id}')">Delete</button>` : ''}
+            </div>
+            <div class="comment-text">${escapeHtml(c.text || '')}</div>
+            <div class="comment-time">${dateStr}</div>
+          </div>
+        </div>`;
+    });
+    listEl.innerHTML = html;
+  } catch (err) {
+    listEl.innerHTML = `<div class="comments-empty">Error loading comments</div>`;
+  }
+}
+
+async function submitComment() {
+  const input = document.getElementById('ppCommentInput');
+  const text = input.value.trim();
+  if (!text) return;
+  if (!window._fb || !window._fb.currentUser()) {
+    showToast('Sign in to comment', 'info');
+    openModal('loginModal');
+    return;
+  }
+  const projectId = window._currentProjectId;
+  if (!projectId) return;
+  try {
+    const { db, currentUser } = window._fb;
+    const user = currentUser();
+    await addDoc(collection(db, 'projects', projectId, 'comments'), {
+      text: text,
+      authorId: user.uid,
+      authorName: user.displayName || 'Anonymous',
+      createdAt: serverTimestamp()
+    });
+    await updateDoc(doc(db, 'projects', projectId), { commentsCount: increment(1) });
+    input.value = '';
+    input.style.height = 'auto';
+    showToast('Comment posted!', 'success');
+    loadComments(projectId);
+    const projectDoc = await getDoc(doc(db, 'projects', projectId));
+    if (projectDoc.exists()) {
+      const p = projectDoc.data();
+      if (p.authorId && p.authorId !== user.uid) {
+        await addDoc(collection(db, 'notifications'), {
+          recipientId: p.authorId,
+          senderId: user.uid,
+          senderName: user.displayName || 'Someone',
+          type: 'comment',
+          projectId: projectId,
+          projectTitle: p.title || 'a project',
+          message: `${user.displayName || 'Someone'} commented on "${p.title || 'your project'}"`,
+          read: false,
+          createdAt: serverTimestamp()
+        });
+      }
+    }
+  } catch (err) {
+    showToast('Comment failed: ' + err.message, 'error');
+  }
+}
+
+async function deleteComment(projectId, commentId) {
+  if (!confirm('Delete this comment?')) return;
+  try {
+    const { db } = window._fb;
+    await deleteDoc(doc(db, 'projects', projectId, 'comments', commentId));
+    await updateDoc(doc(db, 'projects', projectId), { commentsCount: increment(-1) });
+    showToast('Comment deleted', 'success');
+    loadComments(projectId);
+  } catch (err) {
+    showToast('Delete failed: ' + err.message, 'error');
+  }
+}
+
+let notifUnsubscribe = null;
+
+function toggleNotifPanel() {
+  const panel = document.getElementById('notifPanel');
+  panel.classList.toggle('open');
+  if (panel.classList.contains('open')) {
+    loadNotifications();
+  }
+}
+
+async function loadNotifications() {
+  if (!window._fb || !window._fb.currentUser()) {
+    document.getElementById('notifList').innerHTML = `<div class="notif-empty">Sign in to see notifications</div>`;
+    document.getElementById('notifBadge').style.display = 'none';
+    return;
+  }
+  const { db, currentUser } = window._fb;
+  const user = currentUser();
+  if (notifUnsubscribe) notifUnsubscribe();
+  const q = query(
+    collection(db, 'notifications'),
+    where('recipientId', '==', user.uid),
+    orderBy('createdAt', 'desc'),
+    limit(20)
+  );
+  notifUnsubscribe = onSnapshot(q, (snapshot) => {
+    const listEl = document.getElementById('notifList');
+    const badge = document.getElementById('notifBadge');
+    let unreadCount = 0;
+    if (snapshot.empty) {
+      listEl.innerHTML = `<div class="notif-empty">You're all caught up ✓</div>`;
+      badge.style.display = 'none';
+      return;
+    }
+    let html = '';
+    snapshot.forEach(docSnap => {
+      const n = docSnap.data();
+      if (!n.read) unreadCount++;
+      const iconMap = { follow: '👤', comment: '💬', like: '❤️', project: '🎮', mention: '@' };
+      const icon = iconMap[n.type] || '🔔';
+      const dateStr = n.createdAt?.toDate ? timeAgo(n.createdAt.toDate()) : '—';
+      html += `
+        <div class="notif-item ${n.read ? '' : 'unread'}" onclick="handleNotifClick('${docSnap.id}', '${n.type}', '${n.projectId || ''}')">
+          <div class="notif-icon">${icon}</div>
+          <div class="notif-text">
+            <div class="notif-title">${escapeHtml(n.message || 'Notification')}</div>
+            <div class="notif-time">${dateStr}</div>
+          </div>
+        </div>`;
+    });
+    listEl.innerHTML = html;
+    if (unreadCount > 0) {
+      badge.textContent = unreadCount > 99 ? '99+' : unreadCount;
+      badge.style.display = 'flex';
+    } else {
+      badge.style.display = 'none';
+    }
+  }, (err) => {
+    console.error('Notifications error:', err);
+    document.getElementById('notifList').innerHTML = `<div class="notif-empty">Error loading notifications</div>`;
+  });
+}
+
+async function handleNotifClick(notifId, type, projectId) {
+  try {
+    const { db } = window._fb;
+    await updateDoc(doc(db, 'notifications', notifId), { read: true });
+    document.getElementById('notifPanel').classList.remove('open');
+    if (type === 'comment' && projectId) {
+      openProjectPage(projectId);
+    } else if (type === 'follow') {
+      showToast('Check out their profile!', 'info');
+    } else {
+      showToast('Notification opened', 'info');
+    }
+  } catch (err) {
+    console.error('Notif click error:', err);
+  }
+}
+
+async function markAllRead() {
+  if (!window._fb || !window._fb.currentUser()) return;
+  try {
+    const { db, currentUser } = window._fb;
+    const q = query(
+      collection(db, 'notifications'),
+      where('recipientId', '==', currentUser().uid),
+      where('read', '==', false)
+    );
+    const snapshot = await getDocs(q);
+    const batch = [];
+    snapshot.forEach(docSnap => {
+      batch.push(updateDoc(doc(db, 'notifications', docSnap.id), { read: true }));
+    });
+    await Promise.all(batch);
+    showToast('All notifications marked as read', 'success');
+  } catch (err) {
+    showToast('Error: ' + err.message, 'error');
+  }
+}
+
+document.addEventListener('click', (e) => {
+  const panel = document.getElementById('notifPanel');
+  const btn = document.getElementById('notifBtn');
+  if (panel && !panel.contains(e.target) && e.target !== btn && !btn.contains(e.target)) {
+    panel.classList.remove('open');
+  }
+});
+
+function escapeHtml(text) {
+  if (!text) return '';
+  const div = document.createElement('div');
+  div.textContent = text;
+  return div.innerHTML;
+}
+
+function timeAgo(date) {
+  const seconds = Math.floor((new Date() - date) / 1000);
+  const intervals = {
+    year: 31536000, month: 2592000, week: 604800,
+    day: 86400, hour: 3600, minute: 60
+  };
+  for (const [unit, secondsInUnit] of Object.entries(intervals)) {
+    const interval = Math.floor(seconds / secondsInUnit);
+    if (interval >= 1) return `${interval} ${unit}${interval > 1 ? 's' : ''} ago`;
+  }
+  return 'Just now';
+}
+
+/* =====================================================
+   ORIGINAL APP LOGIC (preserved)
+   ===================================================== */
+
 window.addEventListener('DOMContentLoaded', () => {
   setTimeout(() => {
     if (window._fb) {
@@ -3190,21 +3840,20 @@ function confirmDelete(docId, title) {
   }
 }
 
-/* Stubs for functions referenced by HTML that may exist in a fuller build */
-function openDashboard()    { document.getElementById('dashOverlay').classList.add('open'); document.body.style.overflow='hidden'; }
-function closeDashboard()   { document.getElementById('dashOverlay').classList.remove('open'); document.body.style.overflow=''; }
-function switchDashTab(btn, panelId) {
-  document.querySelectorAll('.dash-tab').forEach(t=>t.classList.remove('active')); btn.classList.add('active');
-  document.querySelectorAll('.dash-panel').forEach(p=>p.classList.remove('active')); document.getElementById(panelId).classList.add('active');
-}
-function toggleNotifPanel() { document.getElementById('notifPanel').classList.toggle('open'); }
-function markAllRead()      { document.getElementById('notifBadge').style.display='none'; showToast('All read','success'); }
-function closeProjectPage() { document.getElementById('projectPage').classList.remove('open'); document.body.style.overflow=''; }
-function shareCurrentProject() { shareItem('this project'); }
-function toggleFollowCreator() { const b=document.getElementById('ppFollowBtn'); const f=b.classList.toggle('following'); b.textContent=f?'Following ✓':'Follow'; }
-function submitComment()    { showToast('Sign in to comment','info'); }
-function saveProfile()      { showToast('Profile saved!','success'); }
-function uploadAvatar()     { showToast('Avatar upload coming soon','info'); }
+/* Wire up static cards */
+document.addEventListener('DOMContentLoaded', () => {
+  setTimeout(() => {
+    document.querySelectorAll('.static-card').forEach(card => {
+      card.style.cursor = 'pointer';
+      card.addEventListener('click', (e) => {
+        if (e.target.closest('button') || e.target.closest('a')) return;
+        const title = card.querySelector('.card-title')?.textContent;
+        showToast(`Opening "${title}"…`, 'info');
+      });
+    });
+  }, 1500);
+});
 </script>
+
 </body>
 </html>
