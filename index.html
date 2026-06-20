@@ -1159,8 +1159,76 @@ footer { background: var(--surface); border-top: 1px solid var(--border); paddin
   background: var(--accent-dim); color: var(--accent); flex-shrink: 0;
   font-family: var(--font-display); border: 1px solid rgba(0,200,150,0.3);
 }
-.project-author-name { font-family: var(--font-display); font-size: 0.95rem; font-weight: 700; color: var(--text); }
+.project-author-name { font-family: var(--font-display); font-size: 0.95rem; font-weight: 700; color: var(--text); cursor: pointer; }
+.project-author-name:hover { color: var(--accent); }
+.project-author-avatar { cursor: pointer; }
+.card-author { cursor: pointer; }
+.card-author:hover .author-name { color: var(--accent); }
 .project-author-sub { font-size: 0.72rem; color: var(--text3); font-family: var(--font-mono); }
+
+/* ===== CREATOR PROFILE PAGE ===== */
+.creator-page {
+  display: none; position: fixed; inset: 0; z-index: 870;
+  background: var(--bg); overflow-y: auto; animation: fadeIn 0.2s ease;
+}
+.creator-page.open { display: block; }
+.creator-page-header {
+  background: var(--surface); border-bottom: 1px solid var(--border);
+  padding: 0 2rem; display: flex; align-items: center; gap: 1rem;
+  height: 60px; position: sticky; top: 0; z-index: 10;
+}
+.creator-page-inner { max-width: 900px; margin: 0 auto; padding: 0 1.5rem 3rem; }
+.creator-cover {
+  height: 140px; border-radius: 0 0 var(--r-xl) var(--r-xl); margin: 0 -1.5rem;
+  background:
+    radial-gradient(ellipse at 20% 0%, rgba(0,200,150,0.18) 0%, transparent 60%),
+    radial-gradient(ellipse at 80% 100%, rgba(139,92,246,0.14) 0%, transparent 60%),
+    linear-gradient(135deg, #0d1117, #161c2a);
+  position: relative;
+}
+.creator-hero { display: flex; align-items: flex-end; gap: 1.25rem; padding: 0 0.5rem; margin-top: -52px; margin-bottom: 1.5rem; flex-wrap: wrap; }
+.creator-hero-avatar {
+  width: 104px; height: 104px; border-radius: 50%; flex-shrink: 0;
+  background: var(--accent-dim); color: var(--accent); border: 4px solid var(--bg);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 2.1rem; font-weight: 700; font-family: var(--font-display);
+  box-shadow: var(--shadow-md); overflow: hidden;
+}
+.creator-hero-avatar img { width: 100%; height: 100%; object-fit: cover; }
+.creator-hero-info { flex: 1; min-width: 200px; padding-bottom: 6px; }
+.creator-hero-name { font-family: var(--font-display); font-size: 1.6rem; font-weight: 700; letter-spacing: 0.02em; color: var(--text); display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.creator-hero-handle { font-size: 0.8rem; color: var(--text3); font-family: var(--font-mono); margin-top: 2px; }
+.creator-hero-actions { display: flex; gap: 8px; padding-bottom: 6px; flex-shrink: 0; }
+.creator-demo-badge {
+  font-size: 0.6rem; font-weight: 700; padding: 2px 8px; border-radius: 999px;
+  background: var(--amber-dim); color: var(--amber); border: 1px solid rgba(245,158,11,0.3);
+  font-family: var(--font-mono); text-transform: uppercase; letter-spacing: 0.06em;
+}
+.creator-bio { font-size: 0.88rem; color: var(--text2); line-height: 1.7; max-width: 640px; margin-bottom: 1.25rem; white-space: pre-wrap; }
+.creator-meta-row { display: flex; flex-wrap: wrap; gap: 1.25rem; margin-bottom: 1.5rem; font-size: 0.78rem; color: var(--text3); font-family: var(--font-mono); }
+.creator-meta-row span { display: inline-flex; align-items: center; gap: 5px; }
+.creator-stats-row { display: flex; gap: 2rem; margin-bottom: 1.5rem; padding-bottom: 1.5rem; border-bottom: 1px solid var(--border); }
+.creator-stat-block { display: flex; flex-direction: column; gap: 2px; }
+.creator-stat-block-val { font-family: var(--font-display); font-size: 1.3rem; font-weight: 700; color: var(--accent); }
+.creator-stat-block-lbl { font-size: 0.65rem; color: var(--text3); text-transform: uppercase; letter-spacing: 0.06em; font-family: var(--font-mono); }
+.creator-social-row { display: flex; gap: 8px; margin-bottom: 2rem; flex-wrap: wrap; }
+.creator-social-link {
+  display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px;
+  border: 1px solid var(--border2); border-radius: var(--r-md); background: var(--surface2);
+  font-size: 0.75rem; color: var(--text2); transition: all var(--transition);
+}
+.creator-social-link:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-dim); }
+.creator-section-title { font-family: var(--font-display); font-size: 1rem; font-weight: 700; letter-spacing: 0.03em; text-transform: uppercase; color: var(--text); margin-bottom: 1rem; }
+.creator-projects-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; }
+.creator-empty { text-align: center; padding: 3rem 1rem; color: var(--text3); font-family: var(--font-mono); font-size: 0.82rem; background: var(--surface); border: 1px dashed var(--border2); border-radius: var(--r-lg); }
+@media (max-width: 700px) {
+  .creator-projects-grid { grid-template-columns: repeat(2, 1fr); }
+  .creator-hero { margin-top: -40px; }
+  .creator-hero-avatar { width: 80px; height: 80px; font-size: 1.6rem; }
+}
+@media (max-width: 480px) {
+  .creator-projects-grid { grid-template-columns: 1fr; }
+}
 
 /* ===== COMMENTS ===== */
 .comments-section { margin-top: 2rem; }
@@ -1252,7 +1320,7 @@ footer { background: var(--surface); border-top: 1px solid var(--border); paddin
   gap: 1rem;
   padding: 1rem;
   background: var(--surface);
-  border: 1px solid var(--border1);
+  border: 1px solid var(--border);
   border-radius: 8px;
   margin-bottom: 0.75rem;
   transition: border-color 0.2s;
@@ -1270,7 +1338,9 @@ footer { background: var(--surface); border-top: 1px solid var(--border); paddin
   justify-content: center;
   font-size: 1.5rem;
   flex-shrink: 0;
+  overflow: hidden;
 }
+.dash-project-thumb img { width: 100%; height: 100%; object-fit: cover; }
 .dash-project-info {
   flex: 1;
   min-width: 0;
@@ -1345,7 +1415,7 @@ footer { background: var(--surface); border-top: 1px solid var(--border); paddin
 }
 .analytics-bar-fill {
   height: 100%;
-  background: linear-gradient(90deg, var(--accent), var(--accent2));
+  background: linear-gradient(90deg, var(--accent), var(--accent-hover));
   border-radius: 3px;
   transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
 }
@@ -1360,7 +1430,7 @@ footer { background: var(--surface); border-top: 1px solid var(--border); paddin
   justify-content: center;
   font-size: 2rem;
   color: var(--accent);
-  border: 2px solid var(--border1);
+  border: 2px solid var(--border);
   cursor: pointer;
   position: relative;
   overflow: hidden;
@@ -1386,7 +1456,7 @@ footer { background: var(--surface); border-top: 1px solid var(--border); paddin
   display: flex;
   gap: 0.75rem;
   padding: 1rem 0;
-  border-bottom: 1px solid var(--border1);
+  border-bottom: 1px solid var(--border);
 }
 .comment-avatar {
   width: 36px;
@@ -1451,7 +1521,7 @@ footer { background: var(--surface); border-top: 1px solid var(--border); paddin
   display: flex;
   gap: 0.75rem;
   padding: 0.875rem 1rem;
-  border-bottom: 1px solid var(--border1);
+  border-bottom: 1px solid var(--border);
   cursor: pointer;
   transition: background 0.15s;
 }
@@ -2004,7 +2074,7 @@ footer { background: var(--surface); border-top: 1px solid var(--border); paddin
     <a href="#" class="see-all">All creators →</a>
   </div>
   <div class="grid-4">
-    <div class="creator-card">
+    <div class="creator-card" onclick="openDemoCreatorProfile(this)" data-name="Shreevatsa" data-handle="@shreevatsa_dev" data-bio="Psychological horror games · Unity · Bengaluru" data-location="Bengaluru, India" data-initials="SV" data-bg="var(--purple-dim)" data-color="var(--purple)" data-border="rgba(139,92,246,0.3)" data-projects="1">
       <div class="creator-avatar" style="background:var(--purple-dim);color:var(--purple);border-color:rgba(139,92,246,0.3);">SV</div>
       <div class="creator-name">Shreevatsa</div>
       <div class="creator-handle">@shreevatsa_dev</div>
@@ -2013,9 +2083,9 @@ footer { background: var(--surface); border-top: 1px solid var(--border); paddin
         <div><div class="creator-stat-val">1</div><div class="creator-stat-lbl">Projects</div></div>
         <div><div class="creator-stat-val">—</div><div class="creator-stat-lbl">Followers</div></div>
       </div>
-      <button class="follow-btn" onclick="toggleFollow(this)">Follow</button>
+      <button class="follow-btn" onclick="event.stopPropagation();toggleFollow(this)">Follow</button>
     </div>
-    <div class="creator-card">
+    <div class="creator-card" onclick="openDemoCreatorProfile(this)" data-name="ArjunKodes" data-handle="@arjunkodes" data-bio="Space &amp; exploration games · Godot · Pune" data-location="Pune, India" data-initials="AK" data-bg="var(--blue-dim)" data-color="var(--blue)" data-border="rgba(59,130,246,0.3)" data-projects="—">
       <div class="creator-avatar" style="background:var(--blue-dim);color:var(--blue);border-color:rgba(59,130,246,0.3);">AK</div>
       <div class="creator-name">ArjunKodes</div>
       <div class="creator-handle">@arjunkodes</div>
@@ -2024,9 +2094,9 @@ footer { background: var(--surface); border-top: 1px solid var(--border); paddin
         <div><div class="creator-stat-val">—</div><div class="creator-stat-lbl">Projects</div></div>
         <div><div class="creator-stat-val">—</div><div class="creator-stat-lbl">Followers</div></div>
       </div>
-      <button class="follow-btn" onclick="toggleFollow(this)">Follow</button>
+      <button class="follow-btn" onclick="event.stopPropagation();toggleFollow(this)">Follow</button>
     </div>
-    <div class="creator-card">
+    <div class="creator-card" onclick="openDemoCreatorProfile(this)" data-name="PriyaRaval" data-handle="@priyaraval" data-bio="Flutter apps · Productivity tools · Mumbai" data-location="Mumbai, India" data-initials="PR" data-bg="var(--green-dim)" data-color="var(--green)" data-border="rgba(16,185,129,0.3)" data-projects="—">
       <div class="creator-avatar" style="background:var(--green-dim);color:var(--green);border-color:rgba(16,185,129,0.3);">PR</div>
       <div class="creator-name">PriyaRaval</div>
       <div class="creator-handle">@priyaraval</div>
@@ -2035,9 +2105,9 @@ footer { background: var(--surface); border-top: 1px solid var(--border); paddin
         <div><div class="creator-stat-val">—</div><div class="creator-stat-lbl">Projects</div></div>
         <div><div class="creator-stat-val">—</div><div class="creator-stat-lbl">Followers</div></div>
       </div>
-      <button class="follow-btn" onclick="toggleFollow(this)">Follow</button>
+      <button class="follow-btn" onclick="event.stopPropagation();toggleFollow(this)">Follow</button>
     </div>
-    <div class="creator-card">
+    <div class="creator-card" onclick="openDemoCreatorProfile(this)" data-name="Aarav_Art" data-handle="@aarav_art" data-bio="Pixel art · Game assets · Hyderabad" data-location="Hyderabad, India" data-initials="AA" data-bg="var(--amber-dim)" data-color="var(--amber)" data-border="rgba(245,158,11,0.3)" data-projects="—">
       <div class="creator-avatar" style="background:var(--amber-dim);color:var(--amber);border-color:rgba(245,158,11,0.3);">AA</div>
       <div class="creator-name">Aarav_Art</div>
       <div class="creator-handle">@aarav_art</div>
@@ -2046,7 +2116,7 @@ footer { background: var(--surface); border-top: 1px solid var(--border); paddin
         <div><div class="creator-stat-val">—</div><div class="creator-stat-lbl">Projects</div></div>
         <div><div class="creator-stat-val">—</div><div class="creator-stat-lbl">Followers</div></div>
       </div>
-      <button class="follow-btn" onclick="toggleFollow(this)">Follow</button>
+      <button class="follow-btn" onclick="event.stopPropagation();toggleFollow(this)">Follow</button>
     </div>
   </div>
 
@@ -2401,9 +2471,14 @@ footer { background: var(--surface); border-top: 1px solid var(--border); paddin
       <button onclick="closeDashboard()" style="background:none;border:none;color:var(--text2);cursor:pointer;font-size:1.2rem;padding:4px;">←</button>
       <h2>My Dashboard</h2>
     </div>
-    <button class="btn btn-primary btn-sm" onclick="closeDashboard();openModal('uploadModal');">
-      + Publish New
-    </button>
+    <div style="display:flex;align-items:center;gap:8px;">
+      <button class="btn btn-ghost btn-sm" onclick="viewMyPublicProfile()">
+        🔗 View public profile
+      </button>
+      <button class="btn btn-primary btn-sm" onclick="closeDashboard();openModal('uploadModal');">
+        + Publish New
+      </button>
+    </div>
   </div>
   <div class="dash-inner">
     <div class="dash-stats">
@@ -2526,9 +2601,9 @@ footer { background: var(--surface); border-top: 1px solid var(--border); paddin
     <div class="project-page-desc" id="ppDesc">Loading…</div>
     <div class="card-tags" id="ppTags" style="margin-bottom:2rem;"></div>
     <div class="project-author-card" id="ppAuthorCard">
-      <div class="project-author-avatar" id="ppAuthorAvatar">?</div>
+      <div class="project-author-avatar" id="ppAuthorAvatar" onclick="openCreatorProfileFromProjectPage()">?</div>
       <div style="flex:1;">
-        <div class="project-author-name" id="ppAuthorName">Creator</div>
+        <div class="project-author-name" id="ppAuthorName" onclick="openCreatorProfileFromProjectPage()">Creator</div>
         <div class="project-author-sub" id="ppAuthorSub"></div>
       </div>
       <button class="follow-btn-lg" id="ppFollowBtn" onclick="toggleFollowCreator()">Follow</button>
@@ -2543,6 +2618,42 @@ footer { background: var(--surface); border-top: 1px solid var(--border); paddin
       <div id="ppCommentsList">
         <div class="comments-loading" style="font-family:var(--font-mono);font-size:0.78rem;color:var(--text3);">// Loading comments…</div>
       </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== PUBLIC CREATOR PROFILE PAGE ===== -->
+<div class="creator-page" id="creatorPage">
+  <div class="creator-page-header">
+    <button onclick="closeCreatorPage()" style="background:none;border:none;color:var(--text2);cursor:pointer;font-size:1.2rem;padding:4px;">← Back</button>
+    <span style="font-size:0.72rem;color:var(--text3);font-family:var(--font-mono);" id="cpBreadcrumb">// creator</span>
+    <div style="margin-left:auto;display:flex;gap:8px;">
+      <button class="btn btn-ghost btn-sm" onclick="shareCreatorProfile()">Share</button>
+    </div>
+  </div>
+  <div class="creator-page-inner">
+    <div class="creator-cover"></div>
+    <div class="creator-hero">
+      <div class="creator-hero-avatar" id="cpAvatar">?</div>
+      <div class="creator-hero-info">
+        <div class="creator-hero-name"><span id="cpNameText">Creator</span><span class="creator-demo-badge" id="cpDemoBadge" style="display:none;">Sample profile</span></div>
+        <div class="creator-hero-handle" id="cpHandle">@creator</div>
+      </div>
+      <div class="creator-hero-actions" id="cpActions">
+        <button class="follow-btn-lg" id="cpFollowBtn" onclick="toggleFollowFromCreatorPage()">Follow</button>
+      </div>
+    </div>
+    <div class="creator-bio" id="cpBio">This creator hasn't written a bio yet.</div>
+    <div class="creator-meta-row" id="cpMetaRow"></div>
+    <div class="creator-stats-row">
+      <div class="creator-stat-block"><div class="creator-stat-block-val" id="cpStatProjects">—</div><div class="creator-stat-block-lbl">Projects</div></div>
+      <div class="creator-stat-block"><div class="creator-stat-block-val" id="cpStatFollowers">—</div><div class="creator-stat-block-lbl">Followers</div></div>
+      <div class="creator-stat-block"><div class="creator-stat-block-val" id="cpStatViews">—</div><div class="creator-stat-block-lbl">Total views</div></div>
+    </div>
+    <div class="creator-social-row" id="cpSocialRow"></div>
+    <div class="creator-section-title">Published projects</div>
+    <div class="creator-projects-grid" id="cpProjectsGrid">
+      <div class="creator-empty">// Loading projects…</div>
     </div>
   </div>
 </div>
@@ -2742,7 +2853,7 @@ footer { background: var(--surface); border-top: 1px solid var(--border); paddin
             </div>
             <div class="card-body">
               <div class="card-author-row">
-                <div class="card-author">
+                <div class="card-author" onclick="event.stopPropagation();openCreatorProfile('${p.authorId || ''}','${(p.authorName||'Creator').replace(/'/g,"\'")}')">
                   <div class="avatar" style="background:var(--accent-dim);color:var(--accent);">${initials}</div>
                   <span class="author-name">@${p.authorName || 'Creator'}</span>
                 </div>
@@ -3150,7 +3261,11 @@ async function loadDashboardProjects() {
       const typeEmoji = { 'Game': '🎮', 'App / Tool': '📱', 'Video': '🎬', 'Photo / Art': '📷', 'Post': '✏️', 'Music / Audio': '🎵' }[p.type] || '📦';
       const dateStr = p.createdAt?.toDate ? p.createdAt.toDate().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '—';
       const views = p.views || 0;
-      html += `<div class="dash-project-row" data-dash-id="${docId}"><div class="dash-project-thumb">${typeEmoji}</div><div class="dash-project-info"><div class="dash-project-title">${escapeHtml(p.title || 'Untitled')}</div><div class="dash-project-meta"><span>${p.type || 'Project'}</span><span>·</span><span>${dateStr}</span><span>·</span><span>👁 ${views} views</span></div></div><div class="dash-project-actions"><button class="dash-action-btn primary" onclick="openEditModal('${docId}')">Edit</button><button class="dash-action-btn" onclick="viewProjectFromDash('${docId}')">View</button><button class="dash-action-btn danger" onclick="confirmDelete('${docId}', '${escapeHtml(p.title || 'Untitled')}')">Delete</button></div></div>`;
+      const comments = p.commentsCount || 0;
+      const thumbHtml = p.fileURL
+        ? `<img src="${p.fileURL}" onerror="this.remove();this.parentElement.textContent='${typeEmoji}';">`
+        : typeEmoji;
+      html += `<div class="dash-project-row" data-dash-id="${docId}"><div class="dash-project-thumb" onclick="viewProjectFromDash('${docId}')" style="cursor:pointer;">${thumbHtml}</div><div class="dash-project-info"><div class="dash-project-title" onclick="viewProjectFromDash('${docId}')" style="cursor:pointer;">${escapeHtml(p.title || 'Untitled')}</div><div class="dash-project-meta"><span>${p.type || 'Project'}</span><span>·</span><span>${p.pricing || 'Free'}</span><span>·</span><span>${dateStr}</span><span>·</span><span>👁 ${views}</span><span>·</span><span>💬 ${comments}</span></div></div><div class="dash-project-actions"><button class="dash-action-btn primary" onclick="openEditModal('${docId}')">Edit</button><button class="dash-action-btn" onclick="viewProjectFromDash('${docId}')">View</button><button class="dash-action-btn danger" onclick="confirmDelete('${docId}', '${escapeHtml(p.title || 'Untitled')}')">Delete</button></div></div>`;
     });
     container.innerHTML = html;
     document.getElementById('dStatProjects').textContent = snapshot.size;
@@ -3302,13 +3417,191 @@ function closeProjectPage() { document.getElementById('projectPage').classList.r
 async function toggleFollowCreator() {
   if (!window._fb || !window._fb.currentUser()) { showToast('Sign in to follow creators', 'info'); openModal('loginModal'); return; }
   const btn = document.getElementById('ppFollowBtn'); const authorId = window._currentProjectAuthorId; if (!authorId) return;
-  const user = window._fb.currentUser(); const followId = `${user.uid}_${authorId}`; const followRef = doc(db, 'follows', followId);
+  await followUserToggle(authorId, btn);
+}
+
+async function followUserToggle(targetUid, btn) {
+  if (!window._fb || !window._fb.currentUser()) { showToast('Sign in to follow creators', 'info'); openModal('loginModal'); return; }
+  const user = window._fb.currentUser();
+  if (user.uid === targetUid) { showToast("You can't follow yourself", 'info'); return; }
+  const followId = `${user.uid}_${targetUid}`; const followRef = doc(db, 'follows', followId);
   try {
     const followDoc = await getDoc(followRef);
-    if (followDoc.exists()) { await deleteDoc(followRef); btn.textContent = 'Follow'; btn.classList.remove('following'); showToast('Unfollowed', 'info'); }
-    else { await setDoc(followRef, { followerId: user.uid, followingId: authorId, createdAt: serverTimestamp() }); btn.textContent = 'Following ✓'; btn.classList.add('following'); showToast('Now following!', 'success'); await addDoc(collection(db, 'notifications'), { recipientId: authorId, senderId: user.uid, senderName: user.displayName || 'Someone', type: 'follow', message: `${user.displayName || 'Someone'} started following you`, read: false, createdAt: serverTimestamp() }); }
+    if (followDoc.exists()) {
+      await deleteDoc(followRef);
+      if (btn) { btn.textContent = 'Follow'; btn.classList.remove('following'); }
+      showToast('Unfollowed', 'info');
+    } else {
+      await setDoc(followRef, { followerId: user.uid, followingId: targetUid, createdAt: serverTimestamp() });
+      if (btn) { btn.textContent = 'Following ✓'; btn.classList.add('following'); }
+      showToast('Now following!', 'success');
+      await addDoc(collection(db, 'notifications'), { recipientId: targetUid, senderId: user.uid, senderName: user.displayName || 'Someone', type: 'follow', message: `${user.displayName || 'Someone'} started following you`, read: false, createdAt: serverTimestamp() });
+    }
+    const followerCountEl = document.getElementById('cpStatFollowers');
+    if (followerCountEl && window._currentCreatorId === targetUid) loadCreatorFollowerCount(targetUid);
   } catch (err) { showToast('Follow failed: ' + err.message, 'error'); }
 }
+
+/* ===== PUBLIC CREATOR PROFILE PAGE ===== */
+function resetCreatorPage() {
+  document.getElementById('cpDemoBadge').style.display = 'none';
+  document.getElementById('cpAvatar').innerHTML = '?';
+  document.getElementById('cpNameText').textContent = 'Loading…';
+  document.getElementById('cpHandle').textContent = '';
+  document.getElementById('cpBio').textContent = '';
+  document.getElementById('cpMetaRow').innerHTML = '';
+  document.getElementById('cpSocialRow').innerHTML = '';
+  document.getElementById('cpStatProjects').textContent = '—';
+  document.getElementById('cpStatFollowers').textContent = '—';
+  document.getElementById('cpStatViews').textContent = '—';
+  document.getElementById('cpProjectsGrid').innerHTML = '<div class="creator-empty">// Loading projects…</div>';
+  document.getElementById('cpActions').style.display = 'flex';
+}
+
+function socialLinkRow(url, label, icon) {
+  if (!url) return '';
+  const href = /^https?:\/\//i.test(url) ? url : `https://${url}`;
+  return `<a href="${href}" target="_blank" class="creator-social-link">${icon} ${label}</a>`;
+}
+
+async function openCreatorProfile(uid, fallbackName) {
+  if (!uid) { showToast(`${fallbackName || 'This creator'} doesn't have a public profile yet`, 'info'); return; }
+  const page = document.getElementById('creatorPage');
+  page.classList.add('open'); document.body.style.overflow = 'hidden';
+  resetCreatorPage();
+  window._currentCreatorId = uid;
+  document.getElementById('cpBreadcrumb').textContent = '// creator profile';
+  try {
+    const userDoc = await getDoc(doc(db, 'users', uid));
+    const data = userDoc.exists() ? userDoc.data() : {};
+    const displayName = data.displayName || fallbackName || 'Creator';
+    document.getElementById('cpNameText').textContent = displayName;
+    document.getElementById('cpHandle').textContent = data.username ? `@${data.username}` : '';
+    document.getElementById('cpBio').textContent = data.bio || "This creator hasn't written a bio yet.";
+    const avatarEl = document.getElementById('cpAvatar');
+    avatarEl.innerHTML = data.photoURL
+      ? `<img src="${data.photoURL}" onerror="this.remove();this.parentElement.textContent='${displayName.slice(0,2).toUpperCase()}';">`
+      : displayName.slice(0, 2).toUpperCase();
+    const metaParts = [];
+    if (data.location) metaParts.push(`<span>📍 ${escapeHtml(data.location)}</span>`);
+    if (data.createdAt?.toDate) metaParts.push(`<span>🗓 Joined ${data.createdAt.toDate().toLocaleDateString('en-US',{month:'short',year:'numeric'})}</span>`);
+    document.getElementById('cpMetaRow').innerHTML = metaParts.join('');
+    document.getElementById('cpSocialRow').innerHTML = [
+      socialLinkRow(data.website, 'Website', '🌐'),
+      socialLinkRow(data.itch, 'itch.io', '🎮'),
+      socialLinkRow(data.twitter, 'Twitter / X', '𝕏'),
+      socialLinkRow(data.github, 'GitHub', '💻'),
+    ].join('');
+    const currentUser = window._fb.currentUser();
+    const followBtn = document.getElementById('cpFollowBtn');
+    if (currentUser && currentUser.uid === uid) {
+      document.getElementById('cpActions').innerHTML = `<button class="btn btn-ghost btn-sm" onclick="closeCreatorPage();openDashboard();">⚙ Edit your profile</button>`;
+    } else {
+      document.getElementById('cpActions').innerHTML = `<button class="follow-btn-lg" id="cpFollowBtn" onclick="toggleFollowFromCreatorPage()">Follow</button>`;
+      if (currentUser) {
+        const followDoc = await getDoc(doc(db, 'follows', `${currentUser.uid}_${uid}`));
+        const btn = document.getElementById('cpFollowBtn');
+        if (followDoc.exists()) { btn.textContent = 'Following ✓'; btn.classList.add('following'); }
+      }
+    }
+    await Promise.all([loadCreatorProjects(uid), loadCreatorFollowerCount(uid)]);
+  } catch (err) {
+    document.getElementById('cpNameText').textContent = 'Error loading profile';
+    showToast('Could not load profile: ' + err.message, 'error');
+  }
+}
+
+function openDemoCreatorProfile(el) {
+  const page = document.getElementById('creatorPage');
+  page.classList.add('open'); document.body.style.overflow = 'hidden';
+  resetCreatorPage();
+  window._currentCreatorId = null;
+  const name = el.dataset.name, handle = el.dataset.handle, bio = el.dataset.bio;
+  const location = el.dataset.location, initials = el.dataset.initials, projects = el.dataset.projects;
+  document.getElementById('cpBreadcrumb').textContent = `// ${handle}`;
+  document.getElementById('cpDemoBadge').style.display = 'inline-flex';
+  document.getElementById('cpNameText').textContent = name;
+  document.getElementById('cpHandle').textContent = handle;
+  document.getElementById('cpBio').textContent = bio;
+  document.getElementById('cpAvatar').textContent = initials;
+  document.getElementById('cpAvatar').style.background = el.dataset.bg;
+  document.getElementById('cpAvatar').style.color = el.dataset.color;
+  document.getElementById('cpAvatar').style.borderColor = el.dataset.border;
+  document.getElementById('cpMetaRow').innerHTML = `<span>📍 ${escapeHtml(location)}</span>`;
+  document.getElementById('cpStatProjects').textContent = projects;
+  document.getElementById('cpStatFollowers').textContent = '—';
+  document.getElementById('cpStatViews').textContent = '—';
+  document.getElementById('cpSocialRow').innerHTML = '';
+  document.getElementById('cpActions').innerHTML = `<button class="follow-btn-lg" onclick="showToast('This is a sample profile — follows work on real published creator accounts.','info')">Follow</button>`;
+  document.getElementById('cpProjectsGrid').innerHTML = `<div class="creator-empty">// Sample profile — real published projects from registered creators appear here.</div>`;
+}
+
+async function loadCreatorProjects(uid) {
+  const grid = document.getElementById('cpProjectsGrid');
+  try {
+    const q = query(collection(db, 'projects'), where('authorId', '==', uid));
+    const snapshot = await getDocs(q);
+    document.getElementById('cpStatProjects').textContent = snapshot.size;
+    if (snapshot.empty) {
+      grid.innerHTML = `<div class="creator-empty">// No published projects yet</div>`;
+      document.getElementById('cpStatViews').textContent = '0';
+      return;
+    }
+    const typeMap = { 'Game': { cls: 'tb-game', emoji: '🎮' }, 'App / Tool': { cls: 'tb-app', emoji: '📱' }, 'Video': { cls: 'tb-video', emoji: '🎬' }, 'Photo / Art': { cls: 'tb-photo', emoji: '📷' }, 'Post': { cls: 'tb-post', emoji: '✏️' }, 'Music / Audio': { cls: 'tb-music', emoji: '🎵' } };
+    let totalViews = 0; let html = '';
+    snapshot.forEach(docSnap => {
+      const p = docSnap.data(); const docId = docSnap.id;
+      totalViews += (p.views || 0);
+      const info = typeMap[p.type] || { cls: 'tb-app', emoji: '📦' };
+      const thumb = p.fileURL ? `<img src="${p.fileURL}" style="width:100%;height:100%;object-fit:cover;position:absolute;inset:0;" onerror="this.remove();"><div class="card-thumb-bg" style="background:linear-gradient(135deg,#0f172a,#1e293b);">${info.emoji}</div>` : `<div class="card-thumb-bg" style="background:linear-gradient(135deg,#0f172a,#1e293b);">${info.emoji}</div>`;
+      html += `<div class="card" style="cursor:pointer;" onclick="closeCreatorPage();openProjectPage('${docId}')">
+        <div class="card-thumb">${thumb}<span class="type-badge ${info.cls}">${p.type || 'Project'}</span></div>
+        <div class="card-body">
+          <div class="card-title">${escapeHtml(p.title || 'Untitled')}</div>
+          <div class="card-desc">${escapeHtml((p.description || '').slice(0, 80))}${(p.description||'').length > 80 ? '…' : ''}</div>
+        </div>
+        <div class="card-footer"><div class="card-meta"><span class="meta-item">👁 ${p.views || 0}</span><span class="meta-item">${p.pricing || 'Free'}</span></div></div>
+      </div>`;
+    });
+    grid.innerHTML = html;
+    document.getElementById('cpStatViews').textContent = totalViews.toLocaleString();
+  } catch (err) {
+    grid.innerHTML = `<div class="creator-empty">// Error loading projects</div>`;
+  }
+}
+
+async function loadCreatorFollowerCount(uid) {
+  try {
+    const snap = await getCountFromServer(query(collection(db, 'follows'), where('followingId', '==', uid)));
+    document.getElementById('cpStatFollowers').textContent = snap.data().count;
+  } catch (err) {
+    document.getElementById('cpStatFollowers').textContent = '—';
+  }
+}
+
+function toggleFollowFromCreatorPage() {
+  const btn = document.getElementById('cpFollowBtn');
+  const uid = window._currentCreatorId;
+  if (!uid) { showToast('Follows work on real published creator accounts', 'info'); return; }
+  followUserToggle(uid, btn);
+}
+
+function openCreatorProfileFromProjectPage() {
+  const uid = window._currentProjectAuthorId;
+  const name = document.getElementById('ppAuthorName')?.textContent;
+  if (!uid) { showToast("This creator doesn't have a public profile yet", 'info'); return; }
+  openCreatorProfile(uid, name);
+}
+
+function viewMyPublicProfile() {
+  if (!window._fb || !window._fb.currentUser()) { showToast('Sign in first', 'info'); return; }
+  const user = window._fb.currentUser();
+  closeDashboard();
+  openCreatorProfile(user.uid, user.displayName);
+}
+
+function closeCreatorPage() { document.getElementById('creatorPage').classList.remove('open'); document.body.style.overflow = ''; }
+function shareCreatorProfile() { if (navigator.clipboard) navigator.clipboard.writeText(window.location.href).then(() => showToast('Profile link copied!', 'success')); else showToast('Link copied!', 'success'); }
 
 async function loadComments(projectId) {
   const listEl = document.getElementById('ppCommentsList');
@@ -3354,6 +3647,13 @@ window.deleteComment         = deleteComment;
 window.toggleNotifPanel      = toggleNotifPanel;
 window.markAllRead           = markAllRead;
 window.handleNotifClick      = handleNotifClick;
+window.openCreatorProfile              = openCreatorProfile;
+window.openDemoCreatorProfile          = openDemoCreatorProfile;
+window.closeCreatorPage                = closeCreatorPage;
+window.shareCreatorProfile             = shareCreatorProfile;
+window.toggleFollowFromCreatorPage     = toggleFollowFromCreatorPage;
+window.openCreatorProfileFromProjectPage = openCreatorProfileFromProjectPage;
+window.viewMyPublicProfile             = viewMyPublicProfile;
 
 </script>
 
