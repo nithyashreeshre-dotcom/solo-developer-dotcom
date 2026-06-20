@@ -1,0 +1,1181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Solo Developer — publish your games, apps, videos, photos, and posts. The home for indie creators.">
+<title>Solo Developer – Publish Your Creations</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<!-- TOAST CONTAINER -->
+<div class="toast-container" id="toastContainer"></div>
+
+<!-- ANNOUNCEMENT BAR -->
+<div class="announce-bar" id="announceBar">
+  <span style="opacity:0.6">//</span> BETA — Solo Developer is now open to everyone —
+  <a href="#" onclick="openModal('signupModal');return false;">Create your free account</a> and start publishing today.
+  <button class="announce-close" onclick="document.getElementById('announceBar').remove()">✕</button>
+</div>
+
+<!-- NAVBAR -->
+<nav>
+  <div class="nav-inner">
+    <a href="#" class="logo">
+      <div class="logo-mark">SD</div>
+      Solo<span>dev</span>
+    </a>
+    <div class="nav-links">
+      <a href="#discover" class="nav-link active">Browse</a>
+      <a href="#" class="nav-link">Top Rated</a>
+      <a href="#" class="nav-link">New &amp; Trending</a>
+      <a href="#" class="nav-link">Free</a>
+      <a href="#" class="nav-link">Creators</a>
+      <a href="#" class="nav-link">Devlogs</a>
+    </div>
+    <div class="nav-search-wrap">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      <input type="text" id="globalSearch" placeholder="Search games, apps, creators…" autocomplete="off" oninput="handleSearch(this.value)" onfocus="openSearchDrop()" onblur="closeSearchDrop()">
+      <div class="search-results-dropdown" id="searchDrop"></div>
+    </div>
+    <div class="nav-actions">
+      <div style="position:relative;">
+        <button class="btn-icon" onclick="toggleNotifPanel()" id="notifBtn" style="position:relative;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+          <span class="notif-unread-badge" id="notifBadge" style="display:none;">0</span>
+        </button>
+        <!-- NOTIFICATIONS PANEL -->
+        <div class="notif-panel" id="notifPanel">
+          <div class="notif-panel-hd">
+            <h4>Notifications</h4>
+            <button class="notif-mark-read" onclick="markAllRead()">Mark all read</button>
+          </div>
+          <div id="notifList">
+            <div class="notif-empty">You're all caught up ✓</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Auth buttons — shown when logged out -->
+      <div id="navAuthButtons" style="display:flex;align-items:center;gap:8px;">
+        <button class="btn btn-ghost btn-sm" onclick="openModal('loginModal')">Log in</button>
+        <button class="btn btn-primary btn-sm" onclick="openModal('uploadModal')">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/></svg>
+          Upload Game
+        </button>
+      </div>
+
+      <!-- User avatar — shown when logged in -->
+      <div id="navUserSection" style="display:none; position:relative;">
+        <div class="nav-user-avatar" id="navAvatar" onclick="toggleUserMenu()">?</div>
+        <div class="nav-user-menu" id="navUserMenu">
+          <div class="nav-user-menu-header">
+            <div class="nav-user-menu-name" id="menuDisplayName">—</div>
+            <div class="nav-user-menu-email" id="menuEmail">—</div>
+          </div>
+          <div class="nav-user-menu-item" onclick="openModal('uploadModal'); toggleUserMenu();">
+            <span>⬆️</span> Publish a project
+          </div>
+          <div class="nav-user-menu-item" onclick="openDashboard(); toggleUserMenu();">
+            <span>📊</span> My dashboard
+          </div>
+          <div class="nav-user-menu-item" onclick="showToast('Profile coming soon!','info'); toggleUserMenu();">
+            <span>👤</span> Profile
+          </div>
+          <div class="nav-user-menu-item danger" onclick="signOut()">
+            <span>🚪</span> Sign out
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-eyebrow">
+    <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+    The home for indie game creators
+  </div>
+  <h1>
+    Discover &amp; Share
+    <span class="accent-line">Indie Games</span>
+  </h1>
+  <p class="hero-sub">Solo Developer is the open platform for indie game creators. Upload, sell, and discover games made by passionate solo developers.</p>
+  <div class="hero-cta">
+    <button class="btn btn-primary btn-lg" onclick="document.getElementById('discover').scrollIntoView({behavior:'smooth'})">
+      Browse Games
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+    </button>
+    <button class="btn btn-ghost btn-lg" onclick="openModal('signupModal')">
+      Start Publishing
+    </button>
+  </div>
+  <div class="hero-trust">
+    <div class="hero-trust-item"><span>✓</span> No gatekeeping</div>
+    <div class="hero-trust-sep"></div>
+    <div class="hero-trust-item"><span>✓</span> Free forever</div>
+    <div class="hero-trust-sep"></div>
+    <div class="hero-trust-item"><span>✓</span> You own your content</div>
+    <div class="hero-trust-sep"></div>
+    <div class="hero-trust-item"><span>✓</span> Zero ads</div>
+  </div>
+  <div class="hero-stats-row">
+    <div class="hero-stat">
+      <div class="hero-stat-num" id="counterCreators">0</div>
+      <div class="hero-stat-label">Indie Games</div>
+    </div>
+    <div class="hero-stat">
+      <div class="hero-stat-num" id="counterProjects">0</div>
+      <div class="hero-stat-label">Developers</div>
+    </div>
+    <div class="hero-stat">
+      <div class="hero-stat-num" id="counterDownloads">0</div>
+      <div class="hero-stat-label">Downloads</div>
+    </div>
+    <div class="hero-stat">
+      <div class="hero-stat-num" id="counterCountries">0</div>
+      <div class="hero-stat-label">Countries</div>
+    </div>
+  </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section class="how-section">
+  <div class="how-inner">
+    <div class="section-eyebrow">// How it works</div>
+    <h2 class="section-title">From idea to audience in minutes</h2>
+    <p class="section-sub">No gatekeeping. No approval process. You create, you publish, you connect.</p>
+    <div class="steps-grid">
+      <div class="step-item">
+        <div class="step-num">01</div>
+        <div class="step-icon">👤</div>
+        <div class="step-title">Create your account</div>
+        <div class="step-desc">Sign up free in under 30 seconds. No credit card needed. Your creator profile is your home base.</div>
+      </div>
+      <div class="step-item">
+        <div class="step-num">02</div>
+        <div class="step-icon">⬆️</div>
+        <div class="step-title">Upload your creation</div>
+        <div class="step-desc">Games, apps, videos, photos, posts — upload a file or drop in a link. Files go to Cloudinary for free storage.</div>
+      </div>
+      <div class="step-item">
+        <div class="step-num">03</div>
+        <div class="step-icon">🌐</div>
+        <div class="step-title">Go live instantly</div>
+        <div class="step-desc">Your project is saved to Firestore and gets its own page the moment you hit publish. No waiting, no review.</div>
+      </div>
+      <div class="step-item">
+        <div class="step-num">04</div>
+        <div class="step-icon">📈</div>
+        <div class="step-title">Grow your audience</div>
+        <div class="step-desc">Track real downloads and visits via Firebase Analytics. Post devlogs, respond to feedback, build a following.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CONTENT TYPES -->
+<section class="types-section">
+  <div class="types-inner">
+    <div class="section-eyebrow">// What you can publish</div>
+    <h2 class="section-title">Every type of creative work, one platform</h2>
+    <div class="types-grid">
+      <div class="type-card" style="--type-color:#8b5cf6;--type-glow:rgba(139,92,246,0.08);" onclick="filterByType('games')">
+        <span class="type-card-icon">🎮</span>
+        <div class="type-card-name">Games</div>
+        <div class="type-card-desc">Browser, desktop, mobile — Unity, Godot, HTML5, or anything else.</div>
+      </div>
+      <div class="type-card" style="--type-color:#3b82f6;--type-glow:rgba(59,130,246,0.08);" onclick="filterByType('apps')">
+        <span class="type-card-icon">📱</span>
+        <div class="type-card-name">Apps &amp; Tools</div>
+        <div class="type-card-desc">Utilities, dev tools, productivity apps, experiments. APK, EXE, web.</div>
+      </div>
+      <div class="type-card" style="--type-color:#ef4444;--type-glow:rgba(239,68,68,0.08);" onclick="filterByType('videos')">
+        <span class="type-card-icon">🎬</span>
+        <div class="type-card-name">Videos</div>
+        <div class="type-card-desc">Devlogs, tutorials, game trailers, behind-the-scenes content.</div>
+      </div>
+      <div class="type-card" style="--type-color:#f59e0b;--type-glow:rgba(245,158,11,0.08);" onclick="filterByType('photos')">
+        <span class="type-card-icon">📷</span>
+        <div class="type-card-name">Photos &amp; Art</div>
+        <div class="type-card-desc">Photography, concept art, pixel art, UI design, illustrations.</div>
+      </div>
+      <div class="type-card" style="--type-color:#10b981;--type-glow:rgba(16,185,129,0.08);" onclick="filterByType('posts')">
+        <span class="type-card-icon">✏️</span>
+        <div class="type-card-name">Posts &amp; Devlogs</div>
+        <div class="type-card-desc">Write devlogs, tutorials, reviews, postmortems, or long-form stories.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- MAIN CONTENT -->
+<div class="main-wrap" id="discover">
+
+  <div class="tabs-row" id="mainTabs">
+    <button class="tab-btn active" onclick="switchTab(this,'all')">✦ All <span class="tab-pill" id="pill-all">—</span></button>
+    <button class="tab-btn" onclick="switchTab(this,'games')">🎮 Games <span class="tab-pill" id="pill-games">—</span></button>
+    <button class="tab-btn" onclick="switchTab(this,'apps')">📱 Apps <span class="tab-pill" id="pill-apps">—</span></button>
+    <button class="tab-btn" onclick="switchTab(this,'videos')">🎬 Videos <span class="tab-pill" id="pill-videos">—</span></button>
+    <button class="tab-btn" onclick="switchTab(this,'photos')">📷 Photos <span class="tab-pill" id="pill-photos">—</span></button>
+    <button class="tab-btn" onclick="switchTab(this,'posts')">✏️ Posts <span class="tab-pill" id="pill-posts">—</span></button>
+  </div>
+
+  <div class="filters-row">
+    <span class="filter-label">Filter:</span>
+    <button class="chip active" onclick="toggleChip(this)">All</button>
+    <button class="chip" onclick="toggleChip(this)">Free</button>
+    <button class="chip" onclick="toggleChip(this)">Paid</button>
+    <button class="chip" onclick="toggleChip(this)">Open source</button>
+    <button class="chip" onclick="toggleChip(this)">Browser playable</button>
+    <button class="chip" onclick="toggleChip(this)">Mobile</button>
+    <div class="filters-right">
+      <select class="select-input" onchange="showToast('Sorting applied','info')">
+        <option>Newest first</option>
+        <option>Most downloaded</option>
+        <option>Top rated</option>
+        <option>Recently updated</option>
+      </select>
+      <div class="view-toggle">
+        <button class="view-btn active" title="Grid view" onclick="setView('grid',this)">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+        </button>
+        <button class="view-btn" title="List view" onclick="setView('list',this)">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- FEATURED -->
+  <div class="featured-banner">
+    <div class="featured-visual">
+      <span style="z-index:1; filter: drop-shadow(0 8px 32px rgba(120,50,220,0.6));">🌲</span>
+    </div>
+    <div class="featured-info">
+      <div class="featured-badge">⭐ Staff Pick — This Week</div>
+      <div class="featured-cat">// Game · Psychological Horror · Survival</div>
+      <div class="featured-title">Run From Epsteins</div>
+      <div class="featured-desc">A psychological horror survival game set in a terrifying atmospheric forest. Navigate through procedurally placed obstacles, manage your sanity, and survive until dawn. Made solo in Unity.</div>
+      <div class="featured-actions">
+        <a href="https://shreevatsa.itch.io/run-from-epstein" target="_blank" class="btn btn-primary">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/></svg>
+          Download Game
+        </a>
+        <button class="btn btn-ghost" onclick="saveItem(this,'Run From Epsteins')">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
+          Save
+        </button>
+        <button class="btn btn-ghost" onclick="shareItem('Run From Epsteins')">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+          Share
+        </button>
+      </div>
+      <div class="featured-author">
+        <div class="avatar" style="background:var(--purple-dim);color:var(--purple);width:38px;height:38px;font-size:0.85rem;border-color:rgba(139,92,246,0.3);">SV</div>
+        <div>
+          <div class="featured-author-name">Shreevatsa · <span style="color:var(--accent);font-size:0.78rem;font-family:var(--font-mono);">✓ Verified creator</span></div>
+          <div class="featured-author-role">Solo game developer · Bengaluru, India</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TRENDING -->
+  <div class="sec-head">
+    <h2>🔥 Trending Now</h2>
+    <div class="sec-head-right">
+      <span class="fb-status"><span class="fb-status-dot"></span> Live · Firestore</span>
+      <a href="#" class="see-all">See all →</a>
+    </div>
+  </div>
+
+  <div class="grid-4" id="mainGrid">
+    <!-- Skeleton loader -->
+    <div class="card skeleton-card" id="skeletonCard" style="opacity:0.4;pointer-events:none;">
+      <div class="card-thumb"><div class="card-thumb-bg" style="background:var(--surface2);">⏳</div></div>
+      <div class="card-body"><div class="card-title" style="color:var(--text3);">Loading…</div></div>
+    </div>
+
+    <!-- STATIC FALLBACK CARDS -->
+    <div class="card static-card">
+      <div class="card-thumb">
+        <div class="card-thumb-bg" style="background:linear-gradient(135deg,#0f172a,#1e3a5f);">🚀</div>
+        <span class="type-badge tb-game">Game</span>
+        <span class="corner-badge cb-new">New</span>
+        <button class="card-save-btn" onclick="saveItem(this,'Void Wanderer')" title="Save">🔖</button>
+      </div>
+      <div class="card-body">
+        <div class="card-author-row">
+          <div class="card-author">
+            <div class="avatar" style="background:var(--blue-dim);color:var(--blue);">AK</div>
+            <span class="author-name">@ArjunKodes</span>
+          </div>
+        </div>
+        <div class="card-title">Void Wanderer</div>
+        <div class="card-desc">Drift through procedurally generated galaxies with no HUD. A minimalist space exploration experience built in Godot.</div>
+        <div class="card-tags"><span class="tag">Godot</span><span class="tag">Space</span><span class="tag">Free</span><span class="tag">Browser</span></div>
+      </div>
+      <div class="card-footer">
+        <div class="card-meta"><span class="meta-item">🖥 Browser</span><span class="meta-item">Free</span></div>
+        <button class="card-btn" onclick="logAnalyticsEvent('project_click',{name:'Void Wanderer'});showToast('Opening Void Wanderer…','info')">Play →</button>
+      </div>
+    </div>
+
+    <div class="card static-card">
+      <div class="card-thumb">
+        <div class="card-thumb-bg" style="background:linear-gradient(135deg,#052e16,#14532d);">🌿</div>
+        <span class="type-badge tb-app">App</span>
+        <button class="card-save-btn" onclick="saveItem(this,'FocusForest')" title="Save">🔖</button>
+      </div>
+      <div class="card-body">
+        <div class="card-author-row"><div class="card-author"><div class="avatar" style="background:var(--green-dim);color:var(--green);">PR</div><span class="author-name">@PriyaRaval</span></div></div>
+        <div class="card-title">FocusForest</div>
+        <div class="card-desc">A Pomodoro timer that grows a virtual forest as you focus. Flutter, Android &amp; iOS. Open source.</div>
+        <div class="card-tags"><span class="tag">Flutter</span><span class="tag">Android</span><span class="tag">Free</span></div>
+      </div>
+      <div class="card-footer">
+        <div class="card-meta"><span class="meta-item">📱 Mobile</span><span class="meta-item">Free</span></div>
+        <button class="card-btn" onclick="showToast('Opening FocusForest…','info')">View →</button>
+      </div>
+    </div>
+
+    <div class="card static-card">
+      <div class="card-thumb">
+        <div class="card-thumb-bg" style="background:linear-gradient(135deg,#450a0a,#7f1d1d);">🎬</div>
+        <span class="type-badge tb-video">Video</span>
+        <button class="card-save-btn" onclick="saveItem(this,'Building a Game in 48 Hours')" title="Save">🔖</button>
+      </div>
+      <div class="card-body">
+        <div class="card-author-row"><div class="card-author"><div class="avatar" style="background:var(--red-dim);color:var(--red);">SN</div><span class="author-name">@SkyeNarayan</span></div></div>
+        <div class="card-title">Building a Game in 48 Hours</div>
+        <div class="card-desc">Full devlog of a game jam entry — from blank canvas to submission. Real talk about tools, mistakes, and crunch.</div>
+        <div class="card-tags"><span class="tag">Devlog</span><span class="tag">Game Jam</span><span class="tag">Unity</span></div>
+      </div>
+      <div class="card-footer">
+        <div class="card-meta"><span class="meta-item">▶ Video</span><span class="meta-item">22 min</span></div>
+        <button class="card-btn" onclick="showToast('Opening video…','info')">Watch →</button>
+      </div>
+    </div>
+
+    <div class="card static-card">
+      <div class="card-thumb">
+        <div class="card-thumb-bg" style="background:linear-gradient(135deg,#1e1b4b,#3730a3);">🧩</div>
+        <span class="type-badge tb-game">Game</span><span class="corner-badge cb-top">Top</span>
+        <button class="card-save-btn" onclick="saveItem(this,'GridLock Puzzle')" title="Save">🔖</button>
+      </div>
+      <div class="card-body">
+        <div class="card-author-row"><div class="card-author"><div class="avatar" style="background:var(--purple-dim);color:var(--purple);">TS</div><span class="author-name">@TiaSharma_dev</span></div></div>
+        <div class="card-title">GridLock Puzzle</div>
+        <div class="card-desc">200+ handcrafted logic puzzles. No ads, no timers, no pressure. Clean, satisfying puzzle solving in the browser.</div>
+        <div class="card-tags"><span class="tag">HTML5</span><span class="tag">Puzzle</span><span class="tag">Free</span></div>
+      </div>
+      <div class="card-footer">
+        <div class="card-meta"><span class="meta-item">🖥 Browser</span><span class="meta-item">Free</span></div>
+        <button class="card-btn" onclick="showToast('Loading GridLock…','info')">Play →</button>
+      </div>
+    </div>
+
+    <div class="card static-card">
+      <div class="card-thumb">
+        <div class="card-thumb-bg" style="background:linear-gradient(135deg,#1c1917,#44403c);">📷</div>
+        <span class="type-badge tb-photo">Photo</span>
+        <button class="card-save-btn" onclick="saveItem(this,'Urban Decay Vol.3')" title="Save">🔖</button>
+      </div>
+      <div class="card-body">
+        <div class="card-author-row"><div class="card-author"><div class="avatar" style="background:var(--amber-dim);color:var(--amber);">DM</div><span class="author-name">@DevMehta_lens</span></div></div>
+        <div class="card-title">Urban Decay Series — Vol. 3</div>
+        <div class="card-desc">Abandoned buildings, broken concrete, and quiet beauty. Shot on 35mm film across Pune. 24 photographs.</div>
+        <div class="card-tags"><span class="tag">Photography</span><span class="tag">Film</span><span class="tag">Urban</span></div>
+      </div>
+      <div class="card-footer">
+        <div class="card-meta"><span class="meta-item">📷 Gallery</span><span class="meta-item">24 photos</span></div>
+        <button class="card-btn" onclick="showToast('Opening gallery…','info')">View →</button>
+      </div>
+    </div>
+
+    <div class="card static-card">
+      <div class="card-thumb">
+        <div class="card-thumb-bg" style="background:linear-gradient(135deg,#0c4a6e,#0369a1);">🔧</div>
+        <span class="type-badge tb-app">App</span>
+        <button class="card-save-btn" onclick="saveItem(this,'DevPad')" title="Save">🔖</button>
+      </div>
+      <div class="card-body">
+        <div class="card-author-row"><div class="card-author"><div class="avatar" style="background:var(--blue-dim);color:var(--blue);">RK</div><span class="author-name">@RohitKumar_sh</span></div></div>
+        <div class="card-title">DevPad</div>
+        <div class="card-desc">A lightweight Markdown notepad for developers. Works offline. Fast, clean writing space.</div>
+        <div class="card-tags"><span class="tag">Electron</span><span class="tag">Markdown</span><span class="tag">Free</span></div>
+      </div>
+      <div class="card-footer">
+        <div class="card-meta"><span class="meta-item">🖥 Desktop</span><span class="meta-item">Free</span></div>
+        <button class="card-btn" onclick="showToast('Opening DevPad…','info')">Download →</button>
+      </div>
+    </div>
+
+    <div class="card static-card">
+      <div class="card-thumb">
+        <div class="card-thumb-bg" style="background:linear-gradient(135deg,#1a1200,#78350f);">🏺</div>
+        <span class="type-badge tb-photo">Art</span><span class="corner-badge cb-new">New</span>
+        <button class="card-save-btn" onclick="saveItem(this,'Pixel Ruins')" title="Save">🔖</button>
+      </div>
+      <div class="card-body">
+        <div class="card-author-row"><div class="card-author"><div class="avatar" style="background:var(--amber-dim);color:var(--amber);">AA</div><span class="author-name">@Aarav_Art</span></div></div>
+        <div class="card-title">Pixel Ruins — Environment Pack</div>
+        <div class="card-desc">32×32 pixel art tileset: ancient ruins, overgrown temples, crumbling stone. Free for commercial use.</div>
+        <div class="card-tags"><span class="tag">Pixel Art</span><span class="tag">Tileset</span><span class="tag">CC0</span></div>
+      </div>
+      <div class="card-footer">
+        <div class="card-meta"><span class="meta-item">🎨 Asset</span><span class="meta-item">Free / CC0</span></div>
+        <button class="card-btn" onclick="showToast('Downloading asset…','success')">Download →</button>
+      </div>
+    </div>
+
+    <div class="card static-card">
+      <div class="card-thumb">
+        <div class="card-thumb-bg" style="background:linear-gradient(135deg,#0d1f12,#14532d);">🎵</div>
+        <span class="type-badge tb-music">Music</span>
+        <button class="card-save-btn" onclick="saveItem(this,'Ambient Forest Pack')" title="Save">🔖</button>
+      </div>
+      <div class="card-body">
+        <div class="card-author-row"><div class="card-author"><div class="avatar" style="background:var(--green-dim);color:var(--green);">NK</div><span class="author-name">@NikhilKompo</span></div></div>
+        <div class="card-title">Ambient Forest — Sound Pack</div>
+        <div class="card-desc">12 seamlessly looping ambient tracks for atmospheric games. Royalty-free for any solo developer project.</div>
+        <div class="card-tags"><span class="tag">Audio</span><span class="tag">Ambient</span><span class="tag">Royalty-free</span></div>
+      </div>
+      <div class="card-footer">
+        <div class="card-meta"><span class="meta-item">🎵 Audio</span><span class="meta-item">12 tracks</span></div>
+        <button class="card-btn" onclick="showToast('Downloading sound pack…','success')">Download →</button>
+      </div>
+    </div>
+  </div>
+
+  <div style="text-align:center;margin:2rem 0;">
+    <button class="btn btn-ghost" id="loadMoreBtn" onclick="loadMore()">
+      Load more projects
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+    </button>
+  </div>
+
+  <!-- DEVLOGS -->
+  <div class="sec-head" style="margin-top:1rem;">
+    <h2>📝 Recent Devlogs &amp; Posts</h2>
+    <a href="#" class="see-all">All posts →</a>
+  </div>
+  <div class="grid-3" id="postsGrid">
+    <div class="post-card">
+      <div class="post-header">
+        <div>
+          <span class="post-tag pt-story">Story</span>
+          <div class="post-title">Why I quit my job to make games full-time</div>
+        </div>
+      </div>
+      <div class="post-excerpt">After 6 years in fintech, I took the leap. Here's my honest breakdown — revenue, runway, and mental health, 12 months in.</div>
+      <div class="post-footer">
+        <div class="card-author">
+          <div class="avatar" style="background:var(--blue-dim);color:var(--blue);width:20px;height:20px;font-size:0.52rem;">RM</div>
+          <span class="author-name">@RajMohan_io</span>
+        </div>
+        <span class="read-time">8 min read</span>
+      </div>
+    </div>
+    <div class="post-card">
+      <div class="post-header">
+        <div>
+          <span class="post-tag pt-devlog">Devlog</span>
+          <div class="post-title">Run From Epsteins — Week 6 Update</div>
+        </div>
+      </div>
+      <div class="post-excerpt">Added procedural forest generation, sanity mechanic, and a new audio system. Here's what changed and why the fog finally works.</div>
+      <div class="post-footer">
+        <div class="card-author">
+          <div class="avatar" style="background:var(--purple-dim);color:var(--purple);width:20px;height:20px;font-size:0.52rem;">SV</div>
+          <span class="author-name">@Shreevatsa</span>
+        </div>
+        <span class="read-time">5 min read</span>
+      </div>
+    </div>
+    <div class="post-card">
+      <div class="post-header">
+        <div>
+          <span class="post-tag pt-tutorial">Tutorial</span>
+          <div class="post-title">Godot 4 procedural generation for beginners</div>
+        </div>
+      </div>
+      <div class="post-excerpt">A ground-up walkthrough of how to use Godot 4's noise functions to generate terrain that feels handcrafted without actually being.</div>
+      <div class="post-footer">
+        <div class="card-author">
+          <div class="avatar" style="background:var(--blue-dim);color:var(--blue);width:20px;height:20px;font-size:0.52rem;">AK</div>
+          <span class="author-name">@ArjunKodes</span>
+        </div>
+        <span class="read-time">12 min read</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- CREATORS -->
+  <div class="sec-head" style="margin-top:2.5rem;">
+    <h2>✨ Spotlight Creators</h2>
+    <a href="#" class="see-all">All creators →</a>
+  </div>
+  <div class="grid-4">
+    <div class="creator-card" onclick="openDemoCreatorProfile(this)" data-name="Shreevatsa" data-handle="@shreevatsa_dev" data-bio="Psychological horror games · Unity · Bengaluru" data-location="Bengaluru, India" data-initials="SV" data-bg="var(--purple-dim)" data-color="var(--purple)" data-border="rgba(139,92,246,0.3)" data-projects="1">
+      <div class="creator-avatar" style="background:var(--purple-dim);color:var(--purple);border-color:rgba(139,92,246,0.3);">SV</div>
+      <div class="creator-name">Shreevatsa</div>
+      <div class="creator-handle">@shreevatsa_dev</div>
+      <div class="creator-specialty">Psychological horror games · Unity · Bengaluru</div>
+      <div class="creator-stats">
+        <div><div class="creator-stat-val">1</div><div class="creator-stat-lbl">Projects</div></div>
+        <div><div class="creator-stat-val">—</div><div class="creator-stat-lbl">Followers</div></div>
+      </div>
+      <button class="follow-btn" onclick="event.stopPropagation();toggleFollow(this)">Follow</button>
+    </div>
+    <div class="creator-card" onclick="openDemoCreatorProfile(this)" data-name="ArjunKodes" data-handle="@arjunkodes" data-bio="Space &amp; exploration games · Godot · Pune" data-location="Pune, India" data-initials="AK" data-bg="var(--blue-dim)" data-color="var(--blue)" data-border="rgba(59,130,246,0.3)" data-projects="—">
+      <div class="creator-avatar" style="background:var(--blue-dim);color:var(--blue);border-color:rgba(59,130,246,0.3);">AK</div>
+      <div class="creator-name">ArjunKodes</div>
+      <div class="creator-handle">@arjunkodes</div>
+      <div class="creator-specialty">Space &amp; exploration games · Godot · Pune</div>
+      <div class="creator-stats">
+        <div><div class="creator-stat-val">—</div><div class="creator-stat-lbl">Projects</div></div>
+        <div><div class="creator-stat-val">—</div><div class="creator-stat-lbl">Followers</div></div>
+      </div>
+      <button class="follow-btn" onclick="event.stopPropagation();toggleFollow(this)">Follow</button>
+    </div>
+    <div class="creator-card" onclick="openDemoCreatorProfile(this)" data-name="PriyaRaval" data-handle="@priyaraval" data-bio="Flutter apps · Productivity tools · Mumbai" data-location="Mumbai, India" data-initials="PR" data-bg="var(--green-dim)" data-color="var(--green)" data-border="rgba(16,185,129,0.3)" data-projects="—">
+      <div class="creator-avatar" style="background:var(--green-dim);color:var(--green);border-color:rgba(16,185,129,0.3);">PR</div>
+      <div class="creator-name">PriyaRaval</div>
+      <div class="creator-handle">@priyaraval</div>
+      <div class="creator-specialty">Flutter apps · Productivity tools · Mumbai</div>
+      <div class="creator-stats">
+        <div><div class="creator-stat-val">—</div><div class="creator-stat-lbl">Projects</div></div>
+        <div><div class="creator-stat-val">—</div><div class="creator-stat-lbl">Followers</div></div>
+      </div>
+      <button class="follow-btn" onclick="event.stopPropagation();toggleFollow(this)">Follow</button>
+    </div>
+    <div class="creator-card" onclick="openDemoCreatorProfile(this)" data-name="Aarav_Art" data-handle="@aarav_art" data-bio="Pixel art · Game assets · Hyderabad" data-location="Hyderabad, India" data-initials="AA" data-bg="var(--amber-dim)" data-color="var(--amber)" data-border="rgba(245,158,11,0.3)" data-projects="—">
+      <div class="creator-avatar" style="background:var(--amber-dim);color:var(--amber);border-color:rgba(245,158,11,0.3);">AA</div>
+      <div class="creator-name">Aarav_Art</div>
+      <div class="creator-handle">@aarav_art</div>
+      <div class="creator-specialty">Pixel art · Game assets · Hyderabad</div>
+      <div class="creator-stats">
+        <div><div class="creator-stat-val">—</div><div class="creator-stat-lbl">Projects</div></div>
+        <div><div class="creator-stat-val">—</div><div class="creator-stat-lbl">Followers</div></div>
+      </div>
+      <button class="follow-btn" onclick="event.stopPropagation();toggleFollow(this)">Follow</button>
+    </div>
+  </div>
+
+</div><!-- /main-wrap -->
+
+<!-- FEATURES -->
+<section class="features-section" style="margin-top:3rem;">
+  <div class="features-inner">
+    <div style="text-align:center;max-width:560px;margin:0 auto 0;">
+      <div class="section-eyebrow" style="text-align:center;">// Why creators choose Solo Developer</div>
+      <h2 class="section-title">Built for people who make things solo</h2>
+      <p class="section-sub">No publisher. No team. Just you, your work, and an audience that cares about indie creation.</p>
+    </div>
+    <div class="features-grid">
+      <div class="feature-item">
+        <div class="feature-icon-wrap">🆓</div>
+        <div class="feature-title">Free forever for creators</div>
+        <div class="feature-desc">Publishing your work on Solo Developer is always free. No listing fees, no upload costs. Optional paid plans add analytics and custom domains.</div>
+      </div>
+      <div class="feature-item">
+        <div class="feature-icon-wrap">📊</div>
+        <div class="feature-title">Real analytics, powered by Firebase</div>
+        <div class="feature-desc">Every click, download, and page view is tracked via Firebase Analytics. Real numbers, no vanity metrics. Know exactly how your work is discovered.</div>
+      </div>
+      <div class="feature-item">
+        <div class="feature-icon-wrap">🔒</div>
+        <div class="feature-title">Secure auth &amp; file storage</div>
+        <div class="feature-desc">Accounts are protected by Firebase Authentication. Files upload directly to Cloudinary — free, fast, and globally distributed with CDN delivery.</div>
+      </div>
+      <div class="feature-item">
+        <div class="feature-icon-wrap">🌍</div>
+        <div class="feature-title">Global reach, zero gatekeeping</div>
+        <div class="feature-desc">No approval process, no review queue. Publish and your work is live to everyone instantly. Reach people in 180+ countries.</div>
+      </div>
+      <div class="feature-item">
+        <div class="feature-icon-wrap">📝</div>
+        <div class="feature-title">Built-in devlog system</div>
+        <div class="feature-desc">Write devlogs, tutorials, and posts stored directly in Firestore. Build an audience while you build your project.</div>
+      </div>
+      <div class="feature-item">
+        <div class="feature-icon-wrap">💰</div>
+        <div class="feature-title">Sell your work, keep more</div>
+        <div class="feature-desc">Set your own price, offer free versions, or "pay what you want." Lower platform fee than any competitor. Direct payouts.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- NEWSLETTER -->
+<section class="newsletter-section">
+  <div class="newsletter-inner">
+    <h2>Stay in the Loop</h2>
+    <p>Get a weekly digest of the best new games, apps, and devlogs from the Solo Developer community.</p>
+    <div class="newsletter-form">
+      <input type="email" class="newsletter-input" placeholder="your@email.com" id="nlEmail">
+      <button class="newsletter-btn" onclick="subscribeNewsletter()">Subscribe</button>
+    </div>
+    <p style="font-size:0.68rem;margin-top:0.75rem;color:var(--text3);font-family:var(--font-mono);">// No spam. Unsubscribe anytime. One email per week, max.</p>
+  </div>
+</section>
+
+<!-- ===== PUBLISH MODAL ===== -->
+<div class="overlay" id="uploadModal">
+  <div class="modal modal-wide">
+    <div class="modal-hd">
+      <h3>Publish your creation</h3>
+      <button class="close-btn" onclick="closeModal('uploadModal')">✕</button>
+    </div>
+    <div class="modal-bd">
+      <div id="publishAuthWarning" style="display:none;background:var(--amber-dim);border:1px solid rgba(245,158,11,0.25);border-radius:var(--r-md);padding:12px 14px;margin-bottom:1rem;font-size:0.78rem;color:var(--amber);font-family:var(--font-mono);">
+        ⚠ You need to <a href="#" onclick="closeModal('uploadModal');openModal('loginModal');return false;" style="color:var(--amber);font-weight:700;text-decoration:underline;">sign in</a> to publish. Your draft will be saved.
+      </div>
+      <div class="form-group">
+        <div class="form-label">What type of creation is this?</div>
+        <div class="type-selector">
+          <button class="type-opt sel" onclick="selType(this)"><span class="type-opt-icon">🎮</span><span class="type-opt-lbl">Game</span></button>
+          <button class="type-opt" onclick="selType(this)"><span class="type-opt-icon">📱</span><span class="type-opt-lbl">App / Tool</span></button>
+          <button class="type-opt" onclick="selType(this)"><span class="type-opt-icon">🎬</span><span class="type-opt-lbl">Video</span></button>
+          <button class="type-opt" onclick="selType(this)"><span class="type-opt-icon">📷</span><span class="type-opt-lbl">Photo / Art</span></button>
+          <button class="type-opt" onclick="selType(this)"><span class="type-opt-icon">✏️</span><span class="type-opt-lbl">Post</span></button>
+          <button class="type-opt" onclick="selType(this)"><span class="type-opt-icon">🎵</span><span class="type-opt-lbl">Music / Audio</span></button>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Project title *</label>
+          <input type="text" class="form-input" placeholder="Give it a memorable name…" id="pubTitle">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Short tagline</label>
+          <input type="text" class="form-input" placeholder="One line description…" id="pubTagline">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Full description *</label>
+        <textarea class="form-input" placeholder="Tell people what your project is, how it works, and what makes it special…" rows="4" id="pubDesc"></textarea>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Tags</label>
+          <input type="text" class="form-input" placeholder="unity, horror, free, mobile…" id="pubTags">
+          <p class="form-hint">// Comma separated. Helps people discover your work.</p>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Game / Download link</label>
+          <input type="url" class="form-input" placeholder="https://yourname.itch.io/your-game" id="pubLink">
+          <p class="form-hint">// Paste your itch.io or GitHub Releases link here.</p>
+        </div>
+      </div>
+      <div class="dropzone" id="dropzone" ondragover="dragOver(event)" ondragleave="dragLeave(event)" ondrop="dropFile(event)" onclick="document.getElementById('fileInput').click()">
+        <div class="dropzone-icon">☁️</div>
+        <p><em>Click to browse</em> or drag and drop your files here</p>
+        <p class="dropzone-sub">// PNG, JPG, GIF up to 10MB · Videos up to 100MB · For game files use the link above ↑</p>
+        <input type="file" id="fileInput" style="display:none" onchange="fileSelected(this)">
+        <div class="upload-progress" id="uploadProgress">
+          <p style="font-size:0.72rem;color:var(--text2);font-family:var(--font-mono);" id="uploadFilename">Uploading…</p>
+          <div class="progress-bar-wrap"><div class="progress-bar" id="progressBar"></div></div>
+        </div>
+      </div>
+      <div class="upload-info" id="uploadInfo"></div>
+      <hr class="divider">
+      <div class="form-group">
+        <div class="form-label">Pricing</div>
+        <div class="pricing-tabs">
+          <button class="pricing-tab active" onclick="selPricingTab(this,'free')">Free</button>
+          <button class="pricing-tab" onclick="selPricingTab(this,'paid')">Paid</button>
+          <button class="pricing-tab" onclick="selPricingTab(this,'pwyw')">Pay what you want</button>
+          <button class="pricing-tab" onclick="selPricingTab(this,'demo')">Free + paid DLC</button>
+        </div>
+        <div id="priceInput" style="display:none">
+          <div class="pricing-input-wrap">
+            <span class="currency-sym">₹</span>
+            <input type="number" class="form-input pricing-input" placeholder="0.00" min="0" step="1" id="pubPrice">
+          </div>
+          <p class="form-hint">// Set 0 for free. You keep 90% of revenue.</p>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Platform / OS</label>
+          <select class="form-input" id="pubPlatform">
+            <option>Browser / Web</option><option>Windows</option><option>macOS</option>
+            <option>Linux</option><option>Android</option><option>iOS</option>
+            <option>All platforms</option><option>Not applicable</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Content rating</label>
+          <select class="form-input" id="pubRating">
+            <option>Everyone</option><option>Teen (13+)</option><option>Mature (17+)</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    <div class="modal-ft">
+      <button class="btn btn-ghost" onclick="closeModal('uploadModal')">Cancel</button>
+      <button class="btn btn-ghost" onclick="saveDraftToFirestore()">Save draft</button>
+      <button class="btn btn-primary" id="publishBtn" onclick="publishProject()">
+        <span class="spinner"></span>
+        <span class="btn-label">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><polyline points="10 15 15 12 10 9"/></svg>
+          Publish Now
+        </span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== LOGIN MODAL ===== -->
+<div class="overlay" id="loginModal">
+  <div class="modal">
+    <div class="modal-hd">
+      <h3 id="authModalTitle">Welcome Back</h3>
+      <button class="close-btn" onclick="closeModal('loginModal')">✕</button>
+    </div>
+    <div class="modal-bd">
+      <div class="modal-tabs">
+        <button class="modal-tab active" onclick="switchAuthTab(this,'signin')">Sign In</button>
+        <button class="modal-tab" onclick="switchAuthTab(this,'signup')">Create Account</button>
+      </div>
+      <div class="auth-error" id="loginError"></div>
+      <div class="modal-panel active" id="signinPanel">
+        <button class="social-btn" id="googleSigninBtn" onclick="signInWithGoogle()">
+          <svg width="16" height="16" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+          Continue with Google
+        </button>
+        <div class="or-divider"><div class="or-line"></div><span class="or-text">or sign in with email</span><div class="or-line"></div></div>
+        <div class="form-group">
+          <label class="form-label">Email</label>
+          <input type="email" class="form-input" placeholder="you@example.com" id="loginEmail">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Password</label>
+          <input type="password" class="form-input" placeholder="••••••••" id="loginPassword">
+          <p class="form-hint" style="text-align:right;"><a href="#" style="color:var(--accent);" onclick="sendPasswordReset();return false;">Forgot password?</a></p>
+        </div>
+      </div>
+      <div class="modal-panel" id="signupPanel">
+        <button class="social-btn" onclick="signInWithGoogle()">
+          <svg width="16" height="16" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+          Sign up with Google
+        </button>
+        <div class="or-divider"><div class="or-line"></div><span class="or-text">or create with email</span><div class="or-line"></div></div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Display name *</label>
+            <input type="text" class="form-input" placeholder="How you'll appear" id="signupName">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Username *</label>
+            <input type="text" class="form-input" placeholder="@username" id="signupUsername">
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Email *</label>
+          <input type="email" class="form-input" placeholder="you@example.com" id="signupEmail">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Password *</label>
+          <input type="password" class="form-input" placeholder="At least 8 characters" id="signupPassword">
+        </div>
+        <div class="form-group">
+          <label class="form-label">What do you make? (optional)</label>
+          <select class="form-input" id="signupFocus">
+            <option value="">Select your main focus…</option>
+            <option>Games</option><option>Apps &amp; Tools</option><option>Videos &amp; Content</option>
+            <option>Art &amp; Photography</option><option>Music &amp; Audio</option>
+            <option>Writing &amp; Posts</option><option>A mix of things</option>
+          </select>
+        </div>
+        <p style="font-size:0.72rem;color:var(--text3);line-height:1.55;font-family:var(--font-mono);">// By creating an account you agree to the <a href="#" style="color:var(--accent);">Terms of Service</a> and <a href="#" style="color:var(--accent);">Privacy Policy</a>.</p>
+      </div>
+    </div>
+    <div class="modal-ft">
+      <button class="btn btn-ghost" onclick="closeModal('loginModal')">Cancel</button>
+      <button class="btn btn-primary" style="flex:1;" onclick="handleAuth()" id="authBtn">
+        <span class="spinner"></span>
+        <span class="btn-label">Sign In</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- SIGNUP MODAL (from hero) -->
+<div class="overlay" id="signupModal">
+  <div class="modal">
+    <div class="modal-hd">
+      <h3>Create Your Free Account</h3>
+      <button class="close-btn" onclick="closeModal('signupModal')">✕</button>
+    </div>
+    <div class="modal-bd">
+      <div class="auth-error" id="signupError"></div>
+      <button class="social-btn" onclick="signInWithGoogle()">
+        <svg width="16" height="16" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+        Continue with Google
+      </button>
+      <div class="or-divider"><div class="or-line"></div><span class="or-text">or use email</span><div class="or-line"></div></div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Display name *</label>
+          <input type="text" class="form-input" placeholder="Your creator name" id="heroSignupName">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Username *</label>
+          <input type="text" class="form-input" placeholder="@handle" id="heroSignupUsername">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Email *</label>
+        <input type="email" class="form-input" placeholder="you@example.com" id="heroSignupEmail">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Password *</label>
+        <input type="password" class="form-input" placeholder="At least 8 characters" id="heroSignupPassword">
+      </div>
+    </div>
+    <div class="modal-ft">
+      <button class="btn btn-ghost" onclick="closeModal('signupModal')">Cancel</button>
+      <button class="btn btn-primary" style="flex:1;" id="heroSignupBtn" onclick="handleHeroSignup()">
+        <span class="spinner"></span>
+        <span class="btn-label">Create Account →</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- EDIT PROJECT MODAL -->
+<div class="overlay" id="editModal">
+  <div class="modal modal-wide">
+    <div class="modal-hd">
+      <h3>Edit Your Project</h3>
+      <button class="close-btn" onclick="closeModal('editModal')">✕</button>
+    </div>
+    <div class="modal-bd">
+      <input type="hidden" id="editDocId">
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Project title *</label>
+          <input type="text" class="form-input" id="editTitle">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Short tagline</label>
+          <input type="text" class="form-input" id="editTagline">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Full description *</label>
+        <textarea class="form-input" rows="4" id="editDesc"></textarea>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Tags</label>
+          <input type="text" class="form-input" placeholder="unity, horror, free…" id="editTags">
+          <p class="form-hint">// Comma separated.</p>
+        </div>
+        <div class="form-group">
+          <label class="form-label">External link</label>
+          <input type="url" class="form-input" placeholder="https://…" id="editLink">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Platform / OS</label>
+          <select class="form-input" id="editPlatform">
+            <option>Browser / Web</option><option>Windows</option><option>macOS</option>
+            <option>Linux</option><option>Android</option><option>iOS</option>
+            <option>All platforms</option><option>Not applicable</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Pricing</label>
+          <select class="form-input" id="editPricing">
+            <option>Free</option><option>Paid</option><option>Pay what you want</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    <div class="modal-ft">
+      <button class="btn btn-ghost" onclick="closeModal('editModal')">Cancel</button>
+      <button class="btn btn-primary" id="editSaveBtn" onclick="saveEdit()">
+        <span class="spinner"></span>
+        <span class="btn-label">Save Changes</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== DASHBOARD ===== -->
+<div class="dash-overlay" id="dashOverlay">
+  <div class="dash-header">
+    <div style="display:flex;align-items:center;gap:12px;">
+      <button onclick="closeDashboard()" style="background:none;border:none;color:var(--text2);cursor:pointer;font-size:1.2rem;padding:4px;">←</button>
+      <h2>My Dashboard</h2>
+    </div>
+    <div style="display:flex;align-items:center;gap:8px;">
+      <button class="btn btn-ghost btn-sm" onclick="viewMyPublicProfile()">
+        🔗 View public profile
+      </button>
+      <button class="btn btn-primary btn-sm" onclick="closeDashboard();openModal('uploadModal');">
+        + Publish New
+      </button>
+    </div>
+  </div>
+  <div class="dash-inner">
+    <div class="dash-stats">
+      <div class="dash-stat-card">
+        <div class="dash-stat-label">Total projects</div>
+        <div class="dash-stat-val" id="dStatProjects">0</div>
+        <div class="dash-stat-sub">published</div>
+      </div>
+      <div class="dash-stat-card">
+        <div class="dash-stat-label">Total views</div>
+        <div class="dash-stat-val" id="dStatViews">0</div>
+        <div class="dash-stat-sub">across all projects</div>
+      </div>
+      <div class="dash-stat-card">
+        <div class="dash-stat-label">Followers</div>
+        <div class="dash-stat-val" id="dStatFollowers">0</div>
+        <div class="dash-stat-sub">creators following you</div>
+      </div>
+      <div class="dash-stat-card">
+        <div class="dash-stat-label">Comments</div>
+        <div class="dash-stat-val" id="dStatComments">0</div>
+        <div class="dash-stat-sub">on your projects</div>
+      </div>
+    </div>
+    <div class="dash-tabs">
+      <button class="dash-tab active" onclick="switchDashTab(this,'dProjects')">📦 My Projects</button>
+      <button class="dash-tab" onclick="switchDashTab(this,'dAnalytics')">📊 Analytics</button>
+      <button class="dash-tab" onclick="switchDashTab(this,'dProfile')">👤 Profile</button>
+    </div>
+    <div class="dash-panel active" id="dProjects">
+      <div id="dashProjectList">
+        <div style="text-align:center;padding:3rem;color:var(--text3);font-family:var(--font-mono);">// Loading your projects…</div>
+      </div>
+    </div>
+    <div class="dash-panel" id="dAnalytics">
+      <div style="margin-bottom:1.5rem;">
+        <div style="font-size:0.85rem;font-weight:700;margin-bottom:1rem;color:var(--text);font-family:var(--font-display);letter-spacing:0.03em;">VIEWS PER PROJECT</div>
+        <div id="analyticsChart">
+          <div style="text-align:center;padding:2rem;color:var(--text3);font-family:var(--font-mono);">// Publish projects to see analytics</div>
+        </div>
+      </div>
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);padding:1.5rem;margin-top:1.5rem;">
+        <div style="font-size:0.82rem;font-weight:700;margin-bottom:0.75rem;font-family:var(--font-display);">📈 Powered by Firebase Analytics</div>
+        <div style="font-size:0.8rem;color:var(--text2);line-height:1.65;">
+          Detailed analytics including referrer sources, device types, and geographic data are available in your
+          <a href="https://console.firebase.google.com" target="_blank" style="color:var(--accent);">Firebase Console → Analytics</a>.
+        </div>
+      </div>
+    </div>
+    <div class="dash-panel" id="dProfile">
+      <div style="max-width:560px;">
+        <div class="profile-avatar-upload" id="profileAvatarWrap" onclick="document.getElementById('avatarInput').click()">
+          <span id="profileAvatarEmoji">👤</span>
+          <input type="file" id="avatarInput" accept="image/*" style="display:none" onchange="uploadAvatar(this)">
+        </div>
+        <div style="font-size:0.72rem;color:var(--text3);margin-bottom:1.5rem;font-family:var(--font-mono);">// Click to upload profile photo</div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Display name</label>
+            <input type="text" class="form-input" id="profileName" placeholder="Your creator name">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Username</label>
+            <input type="text" class="form-input" id="profileUsername" placeholder="@handle">
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Bio</label>
+          <textarea class="form-input" rows="3" id="profileBio" placeholder="Tell people about yourself and what you make…"></textarea>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Location</label>
+          <input type="text" class="form-input" id="profileLocation" placeholder="City, Country">
+        </div>
+        <div style="font-size:0.72rem;font-weight:700;margin-bottom:0.75rem;margin-top:0.5rem;color:var(--text3);font-family:var(--font-mono);text-transform:uppercase;letter-spacing:0.08em;">// Social links</div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Twitter / X</label>
+            <input type="url" class="form-input" id="profileTwitter" placeholder="https://x.com/…">
+          </div>
+          <div class="form-group">
+            <label class="form-label">GitHub</label>
+            <input type="url" class="form-input" id="profileGithub" placeholder="https://github.com/…">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">itch.io</label>
+            <input type="url" class="form-input" id="profileItch" placeholder="https://yourname.itch.io">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Personal website</label>
+            <input type="url" class="form-input" id="profileWebsite" placeholder="https://…">
+          </div>
+        </div>
+        <button class="btn btn-primary" onclick="saveProfile()" id="saveProfileBtn" style="margin-top:0.5rem;">
+          <span class="spinner"></span>
+          <span class="btn-label">Save Profile</span>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== PROJECT PAGE ===== -->
+<div class="project-page" id="projectPage">
+  <div class="project-page-header">
+    <button onclick="closeProjectPage()" style="background:none;border:none;color:var(--text2);cursor:pointer;font-size:1.2rem;padding:4px;">← Back</button>
+    <span style="font-size:0.72rem;color:var(--text3);font-family:var(--font-mono);" id="projectPageBreadcrumb">// project</span>
+    <div style="margin-left:auto;display:flex;gap:8px;">
+      <button class="btn btn-ghost btn-sm" onclick="shareCurrentProject()">Share</button>
+    </div>
+  </div>
+  <div class="project-page-inner">
+    <div class="project-hero-thumb" id="ppThumb">🎮</div>
+    <div class="project-page-title" id="ppTitle">Project Title</div>
+    <div class="project-page-meta" id="ppMeta"></div>
+    <div class="project-page-actions" id="ppActions"></div>
+    <div style="font-size:0.65rem;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:0.75rem;font-family:var(--font-mono);">// About</div>
+    <div class="project-page-desc" id="ppDesc">Loading…</div>
+    <div class="card-tags" id="ppTags" style="margin-bottom:2rem;"></div>
+    <div class="project-author-card" id="ppAuthorCard">
+      <div class="project-author-avatar" id="ppAuthorAvatar" onclick="openCreatorProfileFromProjectPage()">?</div>
+      <div style="flex:1;">
+        <div class="project-author-name" id="ppAuthorName" onclick="openCreatorProfileFromProjectPage()">Creator</div>
+        <div class="project-author-sub" id="ppAuthorSub"></div>
+      </div>
+      <button class="follow-btn-lg" id="ppFollowBtn" onclick="toggleFollowCreator()">Follow</button>
+    </div>
+    <div class="comments-section">
+      <div class="comments-title" id="ppCommentsTitle">Comments</div>
+      <div class="comment-input-wrap" id="ppCommentInputWrap">
+        <textarea class="comment-input" id="ppCommentInput" placeholder="Leave feedback or a comment…" rows="1"
+          oninput="this.style.height='auto';this.style.height=this.scrollHeight+'px'"></textarea>
+        <button class="comment-submit" onclick="submitComment()">Post</button>
+      </div>
+      <div id="ppCommentsList">
+        <div class="comments-loading" style="font-family:var(--font-mono);font-size:0.78rem;color:var(--text3);">// Loading comments…</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== PUBLIC CREATOR PROFILE PAGE ===== -->
+<div class="creator-page" id="creatorPage">
+  <div class="creator-page-header">
+    <button onclick="closeCreatorPage()" style="background:none;border:none;color:var(--text2);cursor:pointer;font-size:1.2rem;padding:4px;">← Back</button>
+    <span style="font-size:0.72rem;color:var(--text3);font-family:var(--font-mono);" id="cpBreadcrumb">// creator</span>
+    <div style="margin-left:auto;display:flex;gap:8px;">
+      <button class="btn btn-ghost btn-sm" onclick="shareCreatorProfile()">Share</button>
+    </div>
+  </div>
+  <div class="creator-page-inner">
+    <div class="creator-cover"></div>
+    <div class="creator-hero">
+      <div class="creator-hero-avatar" id="cpAvatar">?</div>
+      <div class="creator-hero-info">
+        <div class="creator-hero-name"><span id="cpNameText">Creator</span><span class="creator-demo-badge" id="cpDemoBadge" style="display:none;">Sample profile</span></div>
+        <div class="creator-hero-handle" id="cpHandle">@creator</div>
+      </div>
+      <div class="creator-hero-actions" id="cpActions">
+        <button class="follow-btn-lg" id="cpFollowBtn" onclick="toggleFollowFromCreatorPage()">Follow</button>
+      </div>
+    </div>
+    <div class="creator-bio" id="cpBio">This creator hasn't written a bio yet.</div>
+    <div class="creator-meta-row" id="cpMetaRow"></div>
+    <div class="creator-stats-row">
+      <div class="creator-stat-block"><div class="creator-stat-block-val" id="cpStatProjects">—</div><div class="creator-stat-block-lbl">Projects</div></div>
+      <div class="creator-stat-block"><div class="creator-stat-block-val" id="cpStatFollowers">—</div><div class="creator-stat-block-lbl">Followers</div></div>
+      <div class="creator-stat-block"><div class="creator-stat-block-val" id="cpStatViews">—</div><div class="creator-stat-block-lbl">Total views</div></div>
+    </div>
+    <div class="creator-social-row" id="cpSocialRow"></div>
+    <div class="creator-section-title">Published projects</div>
+    <div class="creator-projects-grid" id="cpProjectsGrid">
+      <div class="creator-empty">// Loading projects…</div>
+    </div>
+  </div>
+</div>
+
+<!-- COOKIE BANNER -->
+<div class="cookie-banner" id="cookieBanner">
+  <p>We use essential cookies and Firebase Analytics to keep the platform running. No third-party ads, no data selling. <a href="#">Learn more</a></p>
+  <div class="cookie-actions">
+    <button class="cookie-decline" onclick="dismissCookie()">Decline optional</button>
+    <button class="cookie-accept" onclick="acceptCookie()">Accept &amp; Continue</button>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-grid">
+    <div class="footer-brand">
+      <div class="logo" style="margin-bottom:0.75rem;">
+        <div class="logo-mark">SD</div>
+        Solo<span style="color:var(--accent);">dev</span>
+      </div>
+      <p class="footer-tagline">An open platform for indie creators. Publish games, apps, videos, photos, and posts. Powered by Firebase + Cloudinary.</p>
+      <div class="footer-social">
+        <a href="#" class="social-icon" onclick="showToast('Twitter/X coming soon!','info');return false;" title="Twitter/X">𝕏</a>
+        <a href="#" class="social-icon" onclick="showToast('Discord coming soon!','info');return false;" title="Discord">💬</a>
+        <a href="#" class="social-icon" onclick="showToast('GitHub coming soon!','info');return false;" title="GitHub">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0 1 12 6.844a9.59 9.59 0 0 1 2.504.337c1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.02 10.02 0 0 0 22 12.017C22 6.484 17.522 2 12 2z"/></svg>
+        </a>
+      </div>
+    </div>
+    <div class="footer-col">
+      <h5>Discover</h5>
+      <a href="#">Browse Games</a><a href="#">Browse Apps</a><a href="#">Browse Videos</a>
+      <a href="#">Browse Photos</a><a href="#">Read Devlogs</a><a href="#">New Releases</a>
+    </div>
+    <div class="footer-col">
+      <h5>Create</h5>
+      <a href="#" onclick="openModal('uploadModal');return false;">Publish a project</a>
+      <a href="#" onclick="openModal('signupModal');return false;">Creator account</a>
+      <a href="#">Creator dashboard</a><a href="#">Analytics</a>
+      <a href="#">Monetization</a><a href="#">Creator FAQ</a>
+    </div>
+    <div class="footer-col">
+      <h5>Community</h5>
+      <a href="#">Spotlight creators</a><a href="#">Game jams</a><a href="#">Discord server</a>
+      <a href="#">Weekly digest</a><a href="#">Creator stories</a><a href="#">Forums</a>
+    </div>
+    <div class="footer-col">
+      <h5>Company</h5>
+      <a href="#">About</a><a href="#">Blog</a><a href="#">Roadmap</a>
+      <a href="#">Press kit</a><a href="#">Contact</a><a href="#">Status</a>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <div class="footer-bottom-left">© 2025 Solo Developer · All rights reserved</div>
+    <div class="footer-bottom-right">
+      <a href="#">Privacy Policy</a><a href="#">Terms of Service</a>
+      <a href="#">Cookie Policy</a><a href="#">Accessibility</a>
+    </div>
+    <div class="made-by">Made with <span>♥</span> by Shreevatsa · Bengaluru, India</div>
+  </div>
+</footer>
+
+<button class="back-top" id="backTop" onclick="window.scrollTo({top:0,behavior:'smooth'})" title="Back to top">↑</button>
+
+<!-- =====================================================
+     FIREBASE SDK (v10 modular via CDN compat shim)
+====================================================== -->
+<script type="module" src="firebase.js"></script>
+
+<!-- =====================================================
+     APP LOGIC
+====================================================== -->
+<script src="app.js"></script>
+</body>
+</html>
