@@ -2696,7 +2696,7 @@ footer { background: var(--surface); border-top: 1px solid var(--border); paddin
   });
 
   window._fb = {
-        async loadProjects(filterType = 'all') {
+    async loadProjects(filterType = 'all') {
       const grid     = document.getElementById('mainGrid');
       const skeleton = document.getElementById('skeletonCard');
       try {
@@ -2781,10 +2781,285 @@ footer { background: var(--surface); border-top: 1px solid var(--border); paddin
         console.error('Firestore load error:', err);
         if (skeleton) skeleton.remove();
       }
+    },
+
+    async updateProject(docId, updates) {
+      try {
+        await updateDoc(doc(window._fb.db, 'projects', docId), { ...updates, updatedAt: serverTimestamp() });
+        showToast('Project updated!', 'success');
+        logEvent(analytics, 'project_updated', { projectId: docId });
+      } catch (err) {
+        showToast('Update failed: ' + err.message, 'error');
+        throw err;
+      }
+    },
+
+    async deleteProject(docId) {
+      try {
+        await deleteDoc(doc(window._fb.db, 'projects', docId));
+        const card = document.querySelector(`[data-doc-id="${docId}"]`);
+        if (card) { card.style.opacity = '0'; card.style.transform = 'scale(0.95)'; setTimeout(() => card.remove(), 300); }
+        showToast('Project deleted', 'success');
+        logEvent(analytics, 'project_deleted', { projectId: docId });
+      } catch (err) {
+        showToast('Delete failed: ' + err.message, 'error');
+      }
+    },
+
+    async uploadFile(file) {
+      try {
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('upload_preset', UPLOAD_PRESET);
+        const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`, { method: 'POST', body: formData });
+        const data = await res.json();
+        if (data.secure_url) {
+          showToast('Upload complete!', 'success');
+          return data.secure_url;
+        } else {
+          showToast('Upload failed', 'error');
+          return null;
+        }
+      } catch (err) {
+        showToast('Upload error: ' + err.message, 'error');
+        return null;
+      }
+    },
+
+    async publishProject(title, tagline, description, tagsStr, link, platform, rating, pricing) {
+      if (!currentUser) { showToast('Please sign in first', 'error'); openModal('loginModal'); return; }
+      if (!title.trim()) { showToast('Title is required', 'error'); return; }
+      const btn = document.getElementById('publishBtn');
+      btn.classList.add('loading');
+      try {
+        const type = document.querySelector('.type-opt.sel')?.dataset.type || 'Game';
+        const tags = tagsStr.split(',').map(t => t.trim()).filter(Boolean);
+        await addDoc(collection(window._fb.db, 'projects'), {
+          title: title.trim(),
+          tagline: tagline.trim(),
+          description: description.trim(),
+          tags,
+          type,
+          platform: platform || 'All platforms',
+          rating: rating || 'Everyone',
+          pricing: pricing || 'Free',
+          externalLink: link.trim(),
+          authorId: currentUser.uid,
+          authorName: currentUser.displayName || currentUser.email || 'Anonymous',
+          status: 'published',
+          views: 0,
+          downloads: 0,
+          commentsCount: 0,
+          createdAt: serverTimestamp(),
+          updatedAt: serverTimestamp(),
+        });
+        showToast('Project published! 🎉', 'success');
+        closeModal('uploadModal');
+        document.getElementById('uploadForm').reset();
+        document.querySelectorAll('.type-opt').forEach(b => b.classList.remove('sel'));
+        document.querySelector('.type-opt').classList.add('sel');
+        document.getElementById('dropzone').innerHTML = '<div style="font-size:2.5rem;margin-bottom:0.5rem;">☁️</div><div style="font-size:0.85rem;color:var(--text3);">Drag & drop or click to upload</div>';
+        document.getElementById('dropzone').classList.remove('has-file');
+        logEvent(analytics, 'project_published', { title: title.trim() });
+      } catch (err) {
+        showToast('Publish failed: ' + err.message, 'error');
+      } finally {
+        btn.classList.remove('loading');
+      }
+    },
+
+    async saveDraft(title, description) {
+      if (!currentUser) return;
+      try {
+        await setDoc(doc(window._fb.db, 'drafts', currentUser.uid), {
+          title: title.trim(),
+          description: description.trim(),
+          authorId: currentUser.uid,
+          savedAt: serverTimestamp(),
+        });
+        showToast('Draft saved', 'success');
+      } catch (err) {
+        showToast('Draft save failed: ' + err.message, 'error');
+      }
+    },
+
+    async signIn(email, password) {
+      try {
+        await signInWithEmailAndPassword(auth, email, password);
+        closeModal('loginModal');
+        showToast('Welcome back!', 'success');
+      } catch (err) {
+        const el = document.getElementById('loginError');
+        el.textContent = err.message;
+        el.classList.add('show');
+      }
+    },
+
+    async signUp(email, password, displayName, username, focus) {
+      try {
+        const cred = await createUserWithEmailAndPassword(auth, email, password);
+        await updateProfile(cred.user, { displayName: displayName || username || email.split('@')[0] });
+        await setDoc(doc(window._fb.db, 'users', cred.user.uid), {
+          email, displayName: displayName || username || email.split('@')[0], username,
+          focus: focus || 'Indie Game Dev', createdAt: serverTimestamp(),
+        });
+        closeModal('loginModal');
+        showToast('Account created! 🎉', 'success');
+        logEvent(analytics, 'sign_up', { method: 'email' });
+      } catch (err) {
+        const el = document.getElementById('loginError');
+        el.textContent = err.message;
+        el.classList.add('show');
+      }
+    },
+
+    async heroSignUp(email, password, displayName, username) {
+      try {
+        const cred = await createUserWithEmailAndPassword(auth, email, password);
+        await updateProfile(cred.user, { displayName: displayName || username || email.split('@')[0] });
+        await setDoc(doc(window._fb.db, 'users', cred.user.uid), {
+          email, displayName: displayName || username || email.split('@')[0], username,
+          focus: 'Indie Game Dev', createdAt: serverTimestamp(),
+        });
+        showToast('Welcome to Solo Developer! 🎉', 'success');
+        logEvent(analytics, 'sign_up', { method: 'hero_email' });
+      } catch (err) {
+        showToast('Sign up failed: ' + err.message, 'error');
+      }
+    },
+
+    async signInWithGoogle() {
+      try {
+        const provider = new GoogleAuthProvider();
+        const result = await signInWithPopup(auth, provider);
+        const user = result.user;
+        const userRef = doc(window._fb.db, 'users', user.uid);
+        const userSnap = await getDoc(userRef);
+        if (!userSnap.exists()) {
+          await setDoc(userRef, {
+            email: user.email,
+            displayName: user.displayName || user.email.split('@')[0],
+            username: user.email.split('@')[0],
+            focus: 'Indie Game Dev',
+            createdAt: serverTimestamp(),
+          });
+        }
+        closeModal('loginModal');
+        showToast(`Welcome, ${user.displayName || 'Creator'}!`, 'success');
+        logEvent(analytics, 'login', { method: 'google' });
+      } catch (err) {
+        showToast('Google sign-in failed: ' + err.message, 'error');
+      }
+    },
+
+    async signOut() {
+      try {
+        await firebaseSignOut(auth);
+        showToast('Signed out', 'info');
+      } catch (err) {
+        showToast('Sign out failed: ' + err.message, 'error');
+      }
+    },
+
+    async sendPasswordReset(email) {
+      try {
+        await sendPasswordResetEmail(auth, email);
+        showToast('Password reset email sent', 'success');
+      } catch (err) {
+        showToast('Error: ' + err.message, 'error');
+      }
+    },
+
+    async subscribeNewsletter(email) {
+      await addDoc(collection(window._fb.db, 'subscribers'), { email, subscribedAt: serverTimestamp() });
+      showToast('Subscribed! Look out for your first digest soon.', 'success');
+      logEvent(analytics, 'newsletter_subscribe');
+    },
+
+    async updateCounters() {
+      try {
+        const snap = await getDocs(collection(window._fb.db, 'projects'));
+        const count = snap.size;
+        animateCounter('statIndieGames', count);
+        animateCounter('statDevs', Math.min(count * 3, 999));
+        animateCounter('statDownloads', Math.floor(count * 12.5));
+        animateCounter('statCountries', 42, '+');
+      } catch (err) {
+        console.error('Counter error:', err);
+      }
+    },
+
+    currentUser: () => currentUser,
+    db: db
+  }
+        const staticCards = grid.querySelectorAll('.static-card');
+        snapshot.forEach((docSnap) => {
+          const p       = docSnap.data();
+          const info    = typeMap[p.type] || { cls: 'tb-app', emoji: '📦', meta: '— Project' };
+          const initials= (p.authorName || '??').slice(0,2).toUpperCase();
+          const tags    = (p.tags || []).slice(0, 3).map(t => `<span class="tag">${escapeHtml(t)}</span>`).join('');
+          const price   = p.pricing || 'Free';
+          const thumb   = p.fileURL
+            ? `<img src="${p.fileURL}" style="width:100%;height:100%;object-fit:cover;position:absolute;inset:0;" onerror="this.remove();">
+               <div class="card-thumb-bg" style="background:linear-gradient(135deg,#0f172a,#1e293b);">${info.emoji}</div>`
+            : `<div class="card-thumb-bg" style="background:linear-gradient(135deg,#0f172a,#1e293b);">${info.emoji}</div>`;
+          const docId   = docSnap.id;
+          const isOwner = currentUser && currentUser.uid === p.authorId;
+          const card = document.createElement('div');
+          card.className = 'card firestore-card';
+          card.setAttribute('data-doc-id', docId);
+          card.style.cursor = 'pointer';
+          card.innerHTML = `
+            <div class="card-thumb">
+              ${thumb}
+              <span class="type-badge ${info.cls}">${p.type || 'Project'}</span>
+              <span class="corner-badge cb-new">New</span>
+              <button class="card-save-btn" onclick="event.stopPropagation();saveItem(this,'${(p.title||'').replace(/'/g,"\'")}')">🔖</button>
+            </div>
+            <div class="card-body">
+              <div class="card-author-row">
+                <div class="card-author">
+                  <div class="avatar" style="background:var(--accent-dim);color:var(--accent);">${initials}</div>
+                  <span class="author-name">@${p.authorName || 'Creator'}</span>
+                </div>
+                ${isOwner ? `<div style="display:flex;gap:4px;">
+                  <button onclick="event.stopPropagation();openEditModal('${docId}')" style="font-size:0.6rem;padding:2px 7px;border:1px solid var(--border2);border-radius:3px;background:var(--surface2);color:var(--text3);cursor:pointer;font-family:var(--font-mono);text-transform:uppercase;letter-spacing:0.04em;">Edit</button>
+                  <button onclick="event.stopPropagation();confirmDelete('${docId}','${(p.title||'').replace(/'/g,"\'")}')" style="font-size:0.6rem;padding:2px 7px;border:1px solid rgba(239,68,68,0.3);border-radius:3px;background:var(--red-dim);color:var(--red);cursor:pointer;font-family:var(--font-mono);text-transform:uppercase;letter-spacing:0.04em;">Del</button>
+                </div>` : ''}
+              </div>
+              <div class="card-title">${escapeHtml(p.title || 'Untitled')}</div>
+              <div class="card-desc">${escapeHtml((p.description || '').slice(0, 100))}${(p.description||'').length > 100 ? '…' : ''}</div>
+              <div class="card-tags">${tags}</div>
+            </div>
+            <div class="card-footer">
+              <div class="card-meta">
+                <span class="meta-item">${info.meta}</span>
+                <span class="meta-item">${price}</span>
+              </div>
+              ${p.externalLink
+                ? `<a href="${p.externalLink}" target="_blank" class="card-btn" onclick="event.stopPropagation();">View →</a>`
+                : `<button class="card-btn" onclick="event.stopPropagation();showToast('Opening project…','info')">View →</button>`
+              }
+            </div>`;
+          card.addEventListener('click', (e) => {
+            if (e.target.closest('button') || e.target.closest('a')) return;
+            openProjectPage(docId);
+          });
+          if (staticCards.length > 0) {
+            grid.insertBefore(card, staticCards[0]);
+          } else {
+            grid.appendChild(card);
+          }
+        });
+        logEvent(analytics, 'projects_loaded', { count: snapshot.size, filter: filterType });
+      } catch (err) {
+        console.error('Firestore load error:', err);
+        if (skeleton) skeleton.remove();
+      }
     },async deleteProject(docId) {
       if (!currentUser) { showToast('Not signed in', 'error'); return; }
       try {
-        await deleteDoc(doc(db, 'projects', docId));
+        await deleteDoc(doc(window._fb.db, 'projects', docId));
         showToast('Project deleted.', 'success');
         logEvent(analytics, 'project_delete', { docId });
         const card = document.querySelector(`[data-doc-id="${docId}"]`);
@@ -2797,7 +3072,7 @@ footer { background: var(--surface); border-top: 1px solid var(--border); paddin
     async updateProject(docId, updates) {
       if (!currentUser) { showToast('Not signed in', 'error'); return; }
       try {
-        await updateDoc(doc(db, 'projects', docId), { ...updates, updatedAt: serverTimestamp() });
+        await updateDoc(doc(window._fb.db, 'projects', docId), { ...updates, updatedAt: serverTimestamp() });
         showToast('Project updated! 🎉', 'success');
         logEvent(analytics, 'project_update', { docId });
         document.querySelectorAll('#mainGrid .firestore-card').forEach(c => c.remove());
@@ -2810,8 +3085,8 @@ footer { background: var(--surface); border-top: 1px solid var(--border); paddin
     async updateCounters() {
       try {
         const [projectsSnap, usersSnap] = await Promise.all([
-          getCountFromServer(query(collection(db, 'projects'), where('status','==','published'))),
-          getCountFromServer(collection(db, 'users'))
+          getCountFromServer(query(collection(window._fb.db, 'projects'), where('status','==','published'))),
+          getCountFromServer(collection(window._fb.db, 'users'))
         ]);
         const projectCount = projectsSnap.data().count;
         const userCount    = usersSnap.data().count;
@@ -2829,7 +3104,7 @@ footer { background: var(--surface); border-top: 1px solid var(--border); paddin
       try {
         const result = await signInWithPopup(auth, gProvider);
         const user   = result.user;
-        await setDoc(doc(db, 'users', user.uid), {
+        await setDoc(doc(window._fb.db, 'users', user.uid), {
           displayName: user.displayName,
           email:       user.email,
           photoURL:    user.photoURL,
@@ -2862,7 +3137,7 @@ footer { background: var(--surface); border-top: 1px solid var(--border); paddin
       try {
         const cred = await createUserWithEmailAndPassword(auth, email, password);
         await updateProfile(cred.user, { displayName });
-        await setDoc(doc(db, 'users', cred.user.uid), {
+        await setDoc(doc(window._fb.db, 'users', cred.user.uid), {
           displayName, username: username.replace(/^@/, ''), email, focus: focus || '', createdAt: serverTimestamp()
         });
         closeAllModals();
@@ -2881,7 +3156,7 @@ footer { background: var(--surface); border-top: 1px solid var(--border); paddin
       try {
         const cred = await createUserWithEmailAndPassword(auth, email, password);
         await updateProfile(cred.user, { displayName });
-        await setDoc(doc(db, 'users', cred.user.uid), {
+        await setDoc(doc(window._fb.db, 'users', cred.user.uid), {
           displayName, username: username.replace(/^@/, ''), email, createdAt: serverTimestamp()
         });
         closeAllModals();
@@ -3017,7 +3292,7 @@ footer { background: var(--surface); border-top: 1px solid var(--border); paddin
       btn.classList.add('loading');
       try {
         const selectedType = document.querySelector('.type-opt.sel .type-opt-lbl')?.textContent || 'Game';
-        const docRef = await addDoc(collection(db, 'projects'), {
+        const docRef = await addDoc(collection(window._fb.db, 'projects'), {
           title, tagline, description: desc,
           tags: tags.split(',').map(t => t.trim()).filter(Boolean),
           externalLink: link, platform, rating, pricing,
@@ -3045,13 +3320,13 @@ footer { background: var(--surface); border-top: 1px solid var(--border); paddin
 
     async saveDraft(title, desc) {
       if (!currentUser) { showToast('Sign in to save drafts', 'error'); return; }
-      await addDoc(collection(db, 'drafts'), { title, description: desc, authorId: currentUser.uid, status: 'draft', createdAt: serverTimestamp() });
+      await addDoc(collection(window._fb.db, 'drafts'), { title, description: desc, authorId: currentUser.uid, status: 'draft', createdAt: serverTimestamp() });
       showToast('Draft saved!', 'success');
       logEvent(analytics, 'draft_saved');
     },
 
     async subscribeNewsletter(email) {
-      await addDoc(collection(db, 'subscribers'), { email, subscribedAt: serverTimestamp() });
+      await addDoc(collection(window._fb.db, 'subscribers'), { email, subscribedAt: serverTimestamp() });
       showToast('Subscribed! Look out for your first digest soon.', 'success');
       logEvent(analytics, 'newsletter_subscribe');
     },
@@ -3101,15 +3376,31 @@ footer { background: var(--surface); border-top: 1px solid var(--border); paddin
     document.querySelectorAll('.overlay.open').forEach(o => { o.classList.remove('open'); });
     document.body.style.overflow = '';
   }
-</script>
 
-<!-- =====================================================
-     APP LOGIC
-====================================================== -->
-<script>
+
 /* =====================================================
-   SOLO DEVELOPER — DASHBOARD, PROFILE & NOTIFICATIONS
+   FEATURE FUNCTIONS (inside module scope)
    ===================================================== */
+
+function escapeHtml(text) {
+  if (!text) return '';
+  const div = document.createElement('div');
+  div.textContent = text;
+  return div.innerHTML;
+}
+
+function timeAgo(date) {
+  const seconds = Math.floor((new Date() - date) / 1000);
+  const intervals = {
+    year: 31536000, month: 2592000, week: 604800,
+    day: 86400, hour: 3600, minute: 60
+  };
+  for (const [unit, secondsInUnit] of Object.entries(intervals)) {
+    const interval = Math.floor(seconds / secondsInUnit);
+    if (interval >= 1) return `${interval} ${unit}${interval > 1 ? 's' : ''} ago`;
+  }
+  return 'Just now';
+}
 
 function openDashboard() {
   document.getElementById('dashOverlay').classList.add('open');
@@ -3142,13 +3433,13 @@ async function loadDashboardProjects() {
   }
   container.innerHTML = `<div style="text-align:center;padding:3rem;color:var(--text3);font-family:var(--font-mono);">// Loading your projects…</div>`;
   try {
-    const { db, currentUser } = window._fb;
-    const q = window._fb.query(
-      window._fb.collection(db, 'projects'),
-      window._fb.where('authorId', '==', currentUser().uid),
-      window._fb.orderBy('createdAt', 'desc')
+    const user = window._fb.currentUser();
+    const q = query(
+      collection(window._fb.db, 'projects'),
+      where('authorId', '==', user.uid),
+      orderBy('createdAt', 'desc')
     );
-    const snapshot = await window._fb.getDocs(q);
+    const snapshot = await getDocs(q);
     if (snapshot.empty) {
       container.innerHTML = `
         <div style="text-align:center;padding:4rem 2rem;">
@@ -3212,13 +3503,13 @@ async function loadDashboardAnalytics() {
     return;
   }
   try {
-    const { db, currentUser } = window._fb;
-    const q = window._fb.query(
-      window._fb.collection(db, 'projects'),
-      window._fb.where('authorId', '==', currentUser().uid),
-      window._fb.orderBy('createdAt', 'desc')
+    const user = window._fb.currentUser();
+    const q = query(
+      collection(window._fb.db, 'projects'),
+      where('authorId', '==', user.uid),
+      orderBy('createdAt', 'desc')
     );
-    const snapshot = await window._fb.getDocs(q);
+    const snapshot = await getDocs(q);
     if (snapshot.empty) {
       chartContainer.innerHTML = `<div style="text-align:center;padding:2rem;color:var(--text3);font-family:var(--font-mono);">// Publish projects to see analytics</div>`;
       document.getElementById('dStatViews').textContent = '0';
@@ -3270,8 +3561,7 @@ async function loadDashboardProfile() {
   if (!window._fb || !window._fb.currentUser()) return;
   const user = window._fb.currentUser();
   try {
-    const { db } = window._fb;
-    const userDoc = await window._fb.getDoc(window._fb.doc(db, 'users', user.uid));
+    const userDoc = await getDoc(doc(window._fb.db, 'users', user.uid));
     const data = userDoc.exists() ? userDoc.data() : {};
     document.getElementById('profileName').value = data.displayName || user.displayName || '';
     document.getElementById('profileUsername').value = data.username || '';
@@ -3308,7 +3598,7 @@ async function saveProfile() {
   const btn = document.getElementById('saveProfileBtn');
   btn.classList.add('loading');
   try {
-    const { db, currentUser } = window._fb;
+    const user = window._fb.currentUser();
     const updates = {
       displayName: document.getElementById('profileName').value.trim(),
       username: document.getElementById('profileUsername').value.trim().replace(/^@/, ''),
@@ -3318,15 +3608,15 @@ async function saveProfile() {
       github: document.getElementById('profileGithub').value.trim(),
       itch: document.getElementById('profileItch').value.trim(),
       website: document.getElementById('profileWebsite').value.trim(),
-      updatedAt: window._fb.serverTimestamp()
+      updatedAt: serverTimestamp()
     };
-    await window._fb.setDoc(window._fb.doc(db, 'users', currentUser().uid), updates, { merge: true });
+    await setDoc(doc(window._fb.db, 'users', user.uid), updates, { merge: true });
     if (updates.displayName) {
-      await window._fb.updateProfile(window._fb.currentUser(), { displayName: updates.displayName });
+      await updateProfile(user, { displayName: updates.displayName });
     }
     showToast('Profile saved! 🎉', 'success');
     const navAvatar = document.getElementById('navAvatar');
-    if (navAvatar) navAvatar.textContent = (updates.displayName || currentUser().email || '?').slice(0, 2).toUpperCase();
+    if (navAvatar) navAvatar.textContent = (updates.displayName || user.email || '?').slice(0, 2).toUpperCase();
     const menuName = document.getElementById('menuDisplayName');
     if (menuName) menuName.textContent = updates.displayName || 'Creator';
   } catch (err) {
@@ -3346,9 +3636,9 @@ async function uploadAvatar(input) {
   try {
     const url = await window._fb.uploadFile(file);
     if (!url) return;
-    const { db, currentUser } = window._fb;
-    await window._fb.setDoc(window._fb.doc(db, 'users', currentUser().uid), { photoURL: url }, { merge: true });
-    await window._fb.updateProfile(window._fb.currentUser(), { photoURL: url });
+    const user = window._fb.currentUser();
+    await setDoc(doc(window._fb.db, 'users', user.uid), { photoURL: url }, { merge: true });
+    await updateProfile(user, { photoURL: url });
     const avatarWrap = document.getElementById('profileAvatarWrap');
     const avatarEmoji = document.getElementById('profileAvatarEmoji');
     avatarWrap.innerHTML = `<img src="${url}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" onerror="this.remove();document.getElementById('profileAvatarEmoji').style.display='flex';">`;
@@ -3368,9 +3658,9 @@ async function openProjectPage(docId) {
   document.getElementById('ppDesc').textContent = 'Loading project details…';
   document.getElementById('ppCommentsList').innerHTML = '<div class="comments-loading" style="font-family:var(--font-mono);font-size:0.78rem;color:var(--text3);">// Loading comments…</div>';
   try {
-    const { db, currentUser } = window._fb;
-    const docRef = window._fb.doc(db, 'projects', docId);
-    const docSnap = await window._fb.getDoc(docRef);
+    const user = window._fb.currentUser();
+    const docRef = doc(window._fb.db, 'projects', docId);
+    const docSnap = await getDoc(docRef);
     if (!docSnap.exists()) {
       document.getElementById('ppTitle').textContent = 'Project Not Found';
       document.getElementById('ppDesc').textContent = 'This project may have been removed or the link is incorrect.';
@@ -3400,7 +3690,7 @@ async function openProjectPage(docId) {
     }
     actionsHtml.push(`<button class="btn btn-ghost" onclick="saveItem(this,'${escapeHtml(p.title || '')}')"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg> Save</button>`);
     actionsHtml.push(`<button class="btn btn-ghost" onclick="shareCurrentProject()"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg> Share</button>`);
-    const isOwner = currentUser() && currentUser().uid === p.authorId;
+    const isOwner = user && user.uid === p.authorId;
     if (isOwner) {
       actionsHtml.push(`<button class="btn btn-ghost" onclick="openEditModal('${docId}');closeProjectPage();"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg> Edit</button>`);
     }
@@ -3414,7 +3704,7 @@ async function openProjectPage(docId) {
     }
     await loadProjectAuthor(p.authorId, p.authorName);
     loadComments(docId);
-    await window._fb.updateDoc(docRef, { views: window._fb.increment(1) });
+    await updateDoc(docRef, { views: increment(1) });
     logEvent(analytics, 'project_view', { projectId: docId, title: p.title });
   } catch (err) {
     console.error('Project page error:', err);
@@ -3429,7 +3719,7 @@ async function loadProjectAuthor(authorId, fallbackName) {
   const subEl = document.getElementById('ppAuthorSub');
   const followBtn = document.getElementById('ppFollowBtn');
   try {
-    const { db, currentUser } = window._fb;
+    const user = window._fb.currentUser();
     if (!authorId) {
       avatarEl.textContent = '?';
       nameEl.textContent = fallbackName || 'Unknown';
@@ -3437,7 +3727,7 @@ async function loadProjectAuthor(authorId, fallbackName) {
       followBtn.style.display = 'none';
       return;
     }
-    const userDoc = await window._fb.getDoc(window._fb.doc(db, 'users', authorId));
+    const userDoc = await getDoc(doc(window._fb.db, 'users', authorId));
     const data = userDoc.exists() ? userDoc.data() : {};
     const displayName = data.displayName || fallbackName || 'Creator';
     avatarEl.textContent = displayName.slice(0, 2).toUpperCase();
@@ -3445,9 +3735,9 @@ async function loadProjectAuthor(authorId, fallbackName) {
     const specialty = data.bio ? data.bio.slice(0, 60) + (data.bio.length > 60 ? '…' : '') : 'Solo Developer';
     const location = data.location ? ` · ${data.location}` : '';
     subEl.textContent = `${specialty}${location}`;
-    if (currentUser() && currentUser().uid !== authorId) {
+    if (user && user.uid !== authorId) {
       followBtn.style.display = 'block';
-      const followDoc = await window._fb.getDoc(window._fb.doc(db, 'follows', `${currentUser().uid}_${authorId}`));
+      const followDoc = await getDoc(doc(window._fb.db, 'follows', `${user.uid}_${authorId}`));
       if (followDoc.exists()) {
         followBtn.textContent = 'Following ✓';
         followBtn.classList.add('following');
@@ -3474,6 +3764,11 @@ function shareCurrentProject() {
   }
 }
 
+function closeProjectPage() {
+  document.getElementById('projectPage').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
 async function toggleFollowCreator() {
   if (!window._fb || !window._fb.currentUser()) {
     showToast('Sign in to follow creators', 'info');
@@ -3483,33 +3778,33 @@ async function toggleFollowCreator() {
   const btn = document.getElementById('ppFollowBtn');
   const authorId = window._currentProjectAuthorId;
   if (!authorId) return;
-  const { db, currentUser } = window._fb;
-  const followId = `${currentUser().uid}_${authorId}`;
-  const followRef = window._fb.doc(db, 'follows', followId);
+  const user = window._fb.currentUser();
+  const followId = `${user.uid}_${authorId}`;
+  const followRef = doc(window._fb.db, 'follows', followId);
   try {
-    const followDoc = await window._fb.getDoc(followRef);
+    const followDoc = await getDoc(followRef);
     if (followDoc.exists()) {
-      await window._fb.deleteDoc(followRef);
+      await deleteDoc(followRef);
       btn.textContent = 'Follow';
       btn.classList.remove('following');
       showToast('Unfollowed', 'info');
     } else {
-      await window._fb.setDoc(followRef, {
-        followerId: currentUser().uid,
+      await setDoc(followRef, {
+        followerId: user.uid,
         followingId: authorId,
-        createdAt: window._fb.serverTimestamp()
+        createdAt: serverTimestamp()
       });
       btn.textContent = 'Following ✓';
       btn.classList.add('following');
       showToast('Now following!', 'success');
-      await window._fb.addDoc(window._fb.collection(db, 'notifications'), {
+      await addDoc(collection(window._fb.db, 'notifications'), {
         recipientId: authorId,
-        senderId: currentUser().uid,
-        senderName: currentUser().displayName || 'Someone',
+        senderId: user.uid,
+        senderName: user.displayName || 'Someone',
         type: 'follow',
-        message: `${currentUser().displayName || 'Someone'} started following you`,
+        message: `${user.displayName || 'Someone'} started following you`,
         read: false,
-        createdAt: window._fb.serverTimestamp()
+        createdAt: serverTimestamp()
       });
     }
   } catch (err) {
@@ -3517,20 +3812,14 @@ async function toggleFollowCreator() {
   }
 }
 
-function closeProjectPage() {
-  document.getElementById('projectPage').classList.remove('open');
-  document.body.style.overflow = '';
-}
-
 async function loadComments(projectId) {
   const listEl = document.getElementById('ppCommentsList');
   try {
-    const { db } = window._fb;
-    const q = window._fb.query(
-      window._fb.collection(db, 'projects', projectId, 'comments'),
-      window._fb.orderBy('createdAt', 'desc')
+    const q = query(
+      collection(window._fb.db, 'projects', projectId, 'comments'),
+      orderBy('createdAt', 'desc')
     );
-    const snapshot = await window._fb.getDocs(q);
+    const snapshot = await getDocs(q);
     document.getElementById('ppCommentsTitle').textContent = `Comments (${snapshot.size})`;
     if (snapshot.empty) {
       listEl.innerHTML = `<div class="comments-empty">No comments yet. Be the first to share your thoughts!</div>`;
@@ -3572,24 +3861,23 @@ async function submitComment() {
   const projectId = window._currentProjectId;
   if (!projectId) return;
   try {
-    const { db, currentUser } = window._fb;
-    const user = currentUser();
-    await window._fb.addDoc(window._fb.collection(db, 'projects', projectId, 'comments'), {
+    const user = window._fb.currentUser();
+    await addDoc(collection(window._fb.db, 'projects', projectId, 'comments'), {
       text: text,
       authorId: user.uid,
       authorName: user.displayName || 'Anonymous',
-      createdAt: window._fb.serverTimestamp()
+      createdAt: serverTimestamp()
     });
-    await window._fb.updateDoc(window._fb.doc(db, 'projects', projectId), { commentsCount: window._fb.increment(1) });
+    await updateDoc(doc(window._fb.db, 'projects', projectId), { commentsCount: increment(1) });
     input.value = '';
     input.style.height = 'auto';
     showToast('Comment posted!', 'success');
     loadComments(projectId);
-    const projectDoc = await window._fb.getDoc(window._fb.doc(db, 'projects', projectId));
+    const projectDoc = await getDoc(doc(window._fb.db, 'projects', projectId));
     if (projectDoc.exists()) {
       const p = projectDoc.data();
       if (p.authorId && p.authorId !== user.uid) {
-        await window._fb.addDoc(window._fb.collection(db, 'notifications'), {
+        await addDoc(collection(window._fb.db, 'notifications'), {
           recipientId: p.authorId,
           senderId: user.uid,
           senderName: user.displayName || 'Someone',
@@ -3598,7 +3886,7 @@ async function submitComment() {
           projectTitle: p.title || 'a project',
           message: `${user.displayName || 'Someone'} commented on "${p.title || 'your project'}"`,
           read: false,
-          createdAt: window._fb.serverTimestamp()
+          createdAt: serverTimestamp()
         });
       }
     }
@@ -3610,9 +3898,8 @@ async function submitComment() {
 async function deleteComment(projectId, commentId) {
   if (!confirm('Delete this comment?')) return;
   try {
-    const { db } = window._fb;
-    await window._fb.deleteDoc(window._fb.doc(db, 'projects', projectId, 'comments', commentId));
-    await window._fb.updateDoc(window._fb.doc(db, 'projects', projectId), { commentsCount: window._fb.increment(-1) });
+    await deleteDoc(doc(window._fb.db, 'projects', projectId, 'comments', commentId));
+    await updateDoc(doc(window._fb.db, 'projects', projectId), { commentsCount: increment(-1) });
     showToast('Comment deleted', 'success');
     loadComments(projectId);
   } catch (err) {
@@ -3636,16 +3923,15 @@ async function loadNotifications() {
     document.getElementById('notifBadge').style.display = 'none';
     return;
   }
-  const { db, currentUser } = window._fb;
-  const user = currentUser();
+  const user = window._fb.currentUser();
   if (notifUnsubscribe) notifUnsubscribe();
-  const q = window._fb.query(
-    window._fb.collection(db, 'notifications'),
-    window._fb.where('recipientId', '==', user.uid),
-    window._fb.orderBy('createdAt', 'desc'),
-    window._fb.limit(20)
+  const q = query(
+    collection(window._fb.db, 'notifications'),
+    where('recipientId', '==', user.uid),
+    orderBy('createdAt', 'desc'),
+    limit(20)
   );
-  notifUnsubscribe = window._fb.onSnapshot(q, (snapshot) => {
+  notifUnsubscribe = onSnapshot(q, (snapshot) => {
     const listEl = document.getElementById('notifList');
     const badge = document.getElementById('notifBadge');
     let unreadCount = 0;
@@ -3685,8 +3971,7 @@ async function loadNotifications() {
 
 async function handleNotifClick(notifId, type, projectId) {
   try {
-    const { db } = window._fb;
-    await window._fb.updateDoc(window._fb.doc(db, 'notifications', notifId), { read: true });
+    await updateDoc(doc(window._fb.db, 'notifications', notifId), { read: true });
     document.getElementById('notifPanel').classList.remove('open');
     if (type === 'comment' && projectId) {
       openProjectPage(projectId);
@@ -3703,16 +3988,16 @@ async function handleNotifClick(notifId, type, projectId) {
 async function markAllRead() {
   if (!window._fb || !window._fb.currentUser()) return;
   try {
-    const { db, currentUser } = window._fb;
-    const q = window._fb.query(
-      window._fb.collection(db, 'notifications'),
-      window._fb.where('recipientId', '==', currentUser().uid),
-      window._fb.where('read', '==', false)
+    const user = window._fb.currentUser();
+    const q = query(
+      collection(window._fb.db, 'notifications'),
+      where('recipientId', '==', user.uid),
+      where('read', '==', false)
     );
-    const snapshot = await window._fb.getDocs(q);
+    const snapshot = await getDocs(q);
     const batch = [];
     snapshot.forEach(docSnap => {
-      batch.push(window._fb.updateDoc(window._fb.doc(db, 'notifications', docSnap.id), { read: true }));
+      batch.push(updateDoc(doc(window._fb.db, 'notifications', docSnap.id), { read: true }));
     });
     await Promise.all(batch);
     showToast('All notifications marked as read', 'success');
@@ -3729,30 +4014,34 @@ document.addEventListener('click', (e) => {
   }
 });
 
-function escapeHtml(text) {
-  if (!text) return '';
-  const div = document.createElement('div');
-  div.textContent = text;
-  return div.innerHTML;
-}
+/* Expose feature functions to window for HTML onclick handlers */
+window.openDashboard = openDashboard;
+window.closeDashboard = closeDashboard;
+window.switchDashTab = switchDashTab;
+window.loadDashboardProjects = loadDashboardProjects;
+window.loadDashboardAnalytics = loadDashboardAnalytics;
+window.loadDashboardProfile = loadDashboardProfile;
+window.saveProfile = saveProfile;
+window.uploadAvatar = uploadAvatar;
+window.openProjectPage = openProjectPage;
+window.closeProjectPage = closeProjectPage;
+window.shareCurrentProject = shareCurrentProject;
+window.toggleFollowCreator = toggleFollowCreator;
+window.loadComments = loadComments;
+window.submitComment = submitComment;
+window.deleteComment = deleteComment;
+window.toggleNotifPanel = toggleNotifPanel;
+window.loadNotifications = loadNotifications;
+window.handleNotifClick = handleNotifClick;
+window.markAllRead = markAllRead;
+window.viewProjectFromDash = viewProjectFromDash;
 
-function timeAgo(date) {
-  const seconds = Math.floor((new Date() - date) / 1000);
-  const intervals = {
-    year: 31536000, month: 2592000, week: 604800,
-    day: 86400, hour: 3600, minute: 60
-  };
-  for (const [unit, secondsInUnit] of Object.entries(intervals)) {
-    const interval = Math.floor(seconds / secondsInUnit);
-    if (interval >= 1) return `${interval} ${unit}${interval > 1 ? 's' : ''} ago`;
-  }
-  return 'Just now';
-}
+</script>
 
-/* =====================================================
-   ORIGINAL APP LOGIC (preserved)
-   ===================================================== */
-
+<!-- =====================================================
+     APP LOGIC
+====================================================== -->
+<script>
 window.addEventListener('DOMContentLoaded', () => {
   setTimeout(() => {
     if (window._fb) {
