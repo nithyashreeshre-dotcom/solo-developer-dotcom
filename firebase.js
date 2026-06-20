@@ -59,7 +59,7 @@
   // ── Admin / owner control ───────────────────────────────────────────────
   // Put your own Firebase Auth UID(s) here. Find yours by signing in, then
   // opening the browser console and running: window._fb.currentUser().uid
-  const ADMIN_UIDS = ["PUT_YOUR_FIREBASE_UID_HERE"];
+  const ADMIN_UIDS = ["88Y7aAC2lNcsnXk2LoqtqLxwijS2"];
   function isAdminUser() {
     const u = currentUser;
     return !!(u && ADMIN_UIDS.includes(u.uid));
