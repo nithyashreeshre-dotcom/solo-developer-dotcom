@@ -64,7 +64,6 @@
     const u = currentUser;
     return !!(u && ADMIN_UIDS.includes(u.uid));
   }
-  window._fb.isAdmin = isAdminUser;
 
   onAuthStateChanged(auth, (user) => {
     currentUser = user;
@@ -88,10 +87,19 @@
       navAuth.style.display  = 'flex';
       navUser.style.display  = 'none';
     }
+
+    // Re-render the project grid whenever sign-in state changes so
+    // owner/admin controls (Edit/Delete) reflect the current user.
+    if (window._fb && window._fb.loadProjects) {
+      document.querySelectorAll('#mainGrid .firestore-card').forEach(c => c.remove());
+      window._fb.loadProjects(window._fb._currentFilter || 'all');
+    }
   });
 
   window._fb = {
+        isAdmin: isAdminUser,
         async loadProjects(filterType = 'all') {
+      window._fb._currentFilter = filterType;
       const grid     = document.getElementById('mainGrid');
       const skeleton = document.getElementById('skeletonCard');
       try {
