@@ -1490,7 +1490,6 @@ footer { background: var(--surface); border-top: 1px solid var(--border); paddin
   font-family: var(--font-mono);
 }
 </style>
-<base target="_blank">
 </head>
 <body>
 
@@ -3338,6 +3337,23 @@ async function loadNotifications() {
 async function handleNotifClick(notifId, type, projectId) { try { await updateDoc(doc(db, 'notifications', notifId), { read: true }); document.getElementById('notifPanel').classList.remove('open'); if (type === 'comment' && projectId) openProjectPage(projectId); else if (type === 'follow') showToast('Check out their profile!', 'info'); else showToast('Notification opened', 'info'); } catch (err) { console.error('Notif click error:', err); } }
 async function markAllRead() { if (!window._fb || !window._fb.currentUser()) return; try { const user = window._fb.currentUser(); const q = query(collection(db, 'notifications'), where('recipientId', '==', user.uid), where('read', '==', false)); const snapshot = await getDocs(q); const batch = []; snapshot.forEach(docSnap => { batch.push(updateDoc(doc(db, 'notifications', docSnap.id), { read: true })); }); await Promise.all(batch); showToast('All notifications marked as read', 'success'); } catch (err) { showToast('Error: ' + err.message, 'error'); } }
 document.addEventListener('click', (e) => { const panel = document.getElementById('notifPanel'); const btn = document.getElementById('notifBtn'); if (panel && !panel.contains(e.target) && e.target !== btn && !btn.contains(e.target)) panel.classList.remove('open'); });
+
+// ===== Expose module-scoped functions to global scope for inline onclick handlers =====
+window.openDashboard         = openDashboard;
+window.closeDashboard        = closeDashboard;
+window.switchDashTab         = switchDashTab;
+window.viewProjectFromDash   = viewProjectFromDash;
+window.saveProfile           = saveProfile;
+window.uploadAvatar          = uploadAvatar;
+window.openProjectPage       = openProjectPage;
+window.shareCurrentProject   = shareCurrentProject;
+window.closeProjectPage      = closeProjectPage;
+window.toggleFollowCreator   = toggleFollowCreator;
+window.submitComment         = submitComment;
+window.deleteComment         = deleteComment;
+window.toggleNotifPanel      = toggleNotifPanel;
+window.markAllRead           = markAllRead;
+window.handleNotifClick      = handleNotifClick;
 
 </script>
 
