@@ -30,12 +30,12 @@
       Solo<span>dev</span>
     </a>
     <div class="nav-links">
-      <a href="#discover" class="nav-link active">Browse</a>
-      <a href="#" class="nav-link">Top Rated</a>
-      <a href="#" class="nav-link">New &amp; Trending</a>
-      <a href="#" class="nav-link">Free</a>
-      <a href="#" class="nav-link">Creators</a>
-      <a href="#" class="nav-link">Devlogs</a>
+      <a href="#discover" class="nav-link active" onclick="navGoBrowse(this)">Browse</a>
+      <a href="#discover" class="nav-link" onclick="navGoTopRated(this)">Top Rated</a>
+      <a href="#discover" class="nav-link" onclick="navGoNewTrending(this)">New &amp; Trending</a>
+      <a href="#discover" class="nav-link" onclick="navGoFree(this)">Free</a>
+      <a href="#creatorsSection" class="nav-link" onclick="navGoSection(this,'creatorsSection')">Creators</a>
+      <a href="#devlogsSection" class="nav-link" onclick="navGoSection(this,'devlogsSection')">Devlogs</a>
     </div>
     <div class="nav-search-wrap">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
@@ -462,7 +462,7 @@
   </div>
 
   <!-- DEVLOGS -->
-  <div class="sec-head" style="margin-top:1rem;">
+  <div class="sec-head" id="devlogsSection" style="margin-top:1rem;">
     <h2>📝 Recent Devlogs &amp; Posts</h2>
     <a href="#" class="see-all">All posts →</a>
   </div>
@@ -518,7 +518,7 @@
   </div>
 
   <!-- CREATORS -->
-  <div class="sec-head" style="margin-top:2.5rem;">
+  <div class="sec-head" id="creatorsSection" style="margin-top:2.5rem;">
     <h2>✨ Spotlight Creators</h2>
     <a href="#" class="see-all">All creators →</a>
   </div>
