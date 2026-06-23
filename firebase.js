@@ -1070,21 +1070,30 @@ async function unsaveFromDash(projectId, title, btn) {
 async function firestoreSearch(val) {
   if (!val || val.length < 2) return [];
   try {
-    // Firestore prefix search: >= val, <= val + '\uf8ff'
-    const end = val + '\uf8ff';
-    const titleQ = query(
-      collection(db, 'projects'),
-      where('title', '>=', val),
-      where('title', '<=', end),
-      limit(8)
-    );
-    const snap = await getDocs(titleQ);
-    const results = [];
-    snap.forEach(d => {
-      const p = d.data();
-      results.push({ id: d.id, title: p.title, type: p.type, emoji: { 'Game':'🎮','App / Tool':'📱','Video':'🎬','Photo / Art':'📷','Post':'✏️','Music / Audio':'🎵' }[p.type] || '📦' });
-    });
-    return results;
+    // Try multiple casings: exact, Title Case first letter, ALL CAPS first letter
+    const variants = [
+      val,
+      val.charAt(0).toUpperCase() + val.slice(1),
+      val.toUpperCase().charAt(0) + val.slice(1)
+    ];
+    // Remove duplicates
+    const unique = [...new Set(variants)];
+    const emojiMap = { 'Game':'🎮','App / Tool':'📱','Video':'🎬','Photo / Art':'📷','Post':'✏️','Music / Audio':'🎵' };
+    const allResults = new Map(); // keyed by doc id to dedupe
+
+    await Promise.all(unique.map(async v => {
+      const end = v + '\uf8ff';
+      const q = query(collection(db, 'projects'), where('title', '>=', v), where('title', '<=', end), limit(8));
+      const snap = await getDocs(q);
+      snap.forEach(d => {
+        if (!allResults.has(d.id)) {
+          const p = d.data();
+          allResults.set(d.id, { id: d.id, title: p.title, type: p.type, emoji: emojiMap[p.type] || '📦' });
+        }
+      });
+    }));
+
+    return [...allResults.values()].slice(0, 8);
   } catch (err) {
     console.warn('Firestore search error:', err);
     return [];
