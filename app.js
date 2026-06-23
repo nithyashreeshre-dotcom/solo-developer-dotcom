@@ -242,62 +242,79 @@ function loadMore() {
 }
 
 let searchTimeout;
-async function handleSearch(val) {
+function handleSearch(val) {
   clearTimeout(searchTimeout);
   const drop = document.getElementById('searchDrop');
   if (!val.trim()) { closeSearchDrop(); return; }
 
-  // Show loading state immediately
   drop.innerHTML = `<div class="search-empty" style="color:var(--text3);">// Searching…</div>`;
   drop.classList.add('open');
 
-  searchTimeout = setTimeout(async () => {
-    try {
-      // Run Firestore search + local fallback in parallel
-      const [fsResults] = await Promise.all([
-        window._fb?.firestoreSearch ? window._fb.firestoreSearch(val) : Promise.resolve([])
-      ]);
+  searchTimeout = setTimeout(() => { runSearch(val); }, 300);
+}
 
-      // Also filter local static data as fallback / extra results
-      const localData = [
-        {title:'Run From Epsteins',type:'Game',icon:'🌲'},
-        {title:'Void Wanderer',type:'Game',icon:'🚀'},
-        {title:'FocusForest',type:'App',icon:'🌿'},
-        {title:'GridLock Puzzle',type:'Game',icon:'🧩'},
-        {title:'DevPad',type:'App',icon:'🔧'},
-        {title:'Urban Decay Series',type:'Photo',icon:'📷'},
-        {title:'Ambient Forest Sound Pack',type:'Audio',icon:'🎵'},
-        {title:'Pixel Ruins Tileset',type:'Art',icon:'🏺'},
-        {title:'Shreevatsa',type:'Creator',icon:'👤'},
-        {title:'ArjunKodes',type:'Creator',icon:'👤'},
-      ];
-      const q = val.toLowerCase();
-      const localResults = localData.filter(d => d.title.toLowerCase().includes(q));
+async function runSearch(val) {
+  const drop = document.getElementById('searchDrop');
+  const localData = [
+    {title:'Run From Epsteins', type:'Game', icon:'🌲'},
+    {title:'Void Wanderer',     type:'Game', icon:'🚀'},
+    {title:'FocusForest',       type:'App',  icon:'🌿'},
+    {title:'GridLock Puzzle',   type:'Game', icon:'🧩'},
+    {title:'DevPad',            type:'App',  icon:'🔧'},
+    {title:'Urban Decay Series',type:'Photo',icon:'📷'},
+    {title:'Ambient Forest Sound Pack', type:'Audio', icon:'🎵'},
+    {title:'Pixel Ruins Tileset', type:'Art', icon:'🏺'},
+    {title:'Shreevatsa',        type:'Creator', icon:'👤'},
+    {title:'ArjunKodes',        type:'Creator', icon:'👤'},
+  ];
 
-      // Merge: Firestore results first, then local ones not already in Firestore results
-      const fsIds = new Set(fsResults.map(r => r.title.toLowerCase()));
-      const merged = [
-        ...fsResults,
-        ...localResults.filter(r => !fsIds.has(r.title.toLowerCase()))
-      ].slice(0, 8);
-
-      if (!merged.length) {
-        drop.innerHTML = `<div class="search-empty">// No results for "${val}"</div>`;
-      } else {
-        drop.innerHTML = merged.map(r => `
-          <div class="search-result-item" onclick="${r.id ? `openProjectPage('${r.id}')` : `showToast('Opening ${r.title}…','info')`};document.getElementById('searchDrop').classList.remove('open');">
-            <div class="search-result-icon">${r.emoji || r.icon || '📦'}</div>
-            <div class="search-result-meta">
-              <div class="search-result-title">${r.title}</div>
-              <div class="search-result-sub">${r.type}${r.id ? ' · Live' : ' · Sample'}</div>
-            </div>
-          </div>`).join('');
-      }
-      drop.classList.add('open');
-    } catch (err) {
-      drop.innerHTML = `<div class="search-empty">// Search error</div>`;
+  try {
+    // Firestore search
+    let fsResults = [];
+    if (window._fb && window._fb.firestoreSearch) {
+      fsResults = await window._fb.firestoreSearch(val);
     }
-  }, 280);
+
+    // Local fallback
+    const q = val.toLowerCase();
+    const localResults = localData.filter(d => d.title.toLowerCase().includes(q));
+    const fsIds = new Set(fsResults.map(r => r.title.toLowerCase()));
+    const merged = [
+      ...fsResults,
+      ...localResults.filter(r => !fsIds.has(r.title.toLowerCase()))
+    ].slice(0, 8);
+
+    if (!merged.length) {
+      drop.innerHTML = `<div class="search-empty">// No results for "${val}"</div>`;
+    } else {
+      drop.innerHTML = merged.map(r => `
+        <div class="search-result-item" onclick="${r.id ? `openProjectPage('${r.id}')` : `showToast('Opening ${r.title}…','info')`};document.getElementById('searchDrop').classList.remove('open');">
+          <div class="search-result-icon">${r.emoji || r.icon || '📦'}</div>
+          <div class="search-result-meta">
+            <div class="search-result-title">${r.title}</div>
+            <div class="search-result-sub">${r.type}${r.id ? ' · Live' : ' · Sample'}</div>
+          </div>
+        </div>`).join('');
+    }
+    drop.classList.add('open');
+  } catch (err) {
+    // If Firestore search fails, just show local results
+    const q = val.toLowerCase();
+    const localResults = localData.filter(d => d.title.toLowerCase().includes(q));
+    if (!localResults.length) {
+      drop.innerHTML = `<div class="search-empty">// No results for "${val}"</div>`;
+    } else {
+      drop.innerHTML = localResults.map(r => `
+        <div class="search-result-item" onclick="showToast('Opening ${r.title}…','info');document.getElementById('searchDrop').classList.remove('open');">
+          <div class="search-result-icon">${r.icon}</div>
+          <div class="search-result-meta">
+            <div class="search-result-title">${r.title}</div>
+            <div class="search-result-sub">${r.type}</div>
+          </div>
+        </div>`).join('');
+    }
+    drop.classList.add('open');
+  }
 }
 function openSearchDrop()  { if (document.getElementById('globalSearch').value) document.getElementById('searchDrop').classList.add('open'); }
 function closeSearchDrop() { setTimeout(() => document.getElementById('searchDrop').classList.remove('open'), 200); }
