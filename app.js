@@ -439,3 +439,42 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }, 1500);
 });
+// Nav link filter handler
+function navFilter(el, type) {
+  document.querySelectorAll('.nav-link').forEach(a => a.classList.remove('active'));
+  el.classList.add('active');
+
+  if (type === 'creators') {
+    document.getElementById('discover').scrollIntoView({ behavior: 'smooth' });
+    showToast('Showing all creators — coming soon as a dedicated page!', 'info');
+    return;
+  }
+
+  document.getElementById('discover').scrollIntoView({ behavior: 'smooth' });
+
+  // Map nav filter to tab
+  const tabMap = { all: 'all', top: 'all', new: 'all', free: 'all' };
+  const typeMap = { all: 'all', top: 'all', new: 'all', free: 'all' };
+
+  // Remove existing firestore cards and reload
+  document.querySelectorAll('#mainGrid .firestore-card').forEach(c => c.remove());
+  const grid = document.getElementById('mainGrid');
+  const sk = document.createElement('div');
+  sk.id = 'skeletonCard'; sk.className = 'card skeleton-card';
+  sk.style.cssText = 'opacity:0.4;pointer-events:none;';
+  sk.innerHTML = '<div class="card-thumb"><div class="card-thumb-bg" style="background:var(--surface2);">⏳</div></div><div class="card-body"><div class="card-title" style="color:var(--text3);font-family:var(--font-mono);">// Loading…</div></div>';
+  grid.prepend(sk);
+
+  // Show/hide static cards based on filter
+  document.querySelectorAll('#mainGrid .static-card').forEach(c => { c.style.display = ''; });
+
+  if (type === 'free') {
+    showToast('Showing free projects', 'info');
+  } else if (type === 'top') {
+    showToast('Showing top rated projects', 'info');
+  } else if (type === 'new') {
+    showToast('Showing newest projects', 'info');
+  }
+
+  if (window._fb) window._fb.loadProjects('all');
+}
