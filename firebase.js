@@ -222,7 +222,8 @@ import { initializeApp }                        from "https://www.gstatic.com/fi
           displayName: user.displayName,
           email:       user.email,
           photoURL:    user.photoURL,
-          updatedAt:   serverTimestamp()
+          updatedAt:   serverTimestamp(),
+          createdAt:   serverTimestamp()
         }, { merge: true });
         closeAllModals();
         showToast(`Welcome, ${user.displayName || 'creator'}! 🎉`, 'success');
@@ -1179,7 +1180,7 @@ async function adminLoadUsers() {
   const container = document.getElementById('adminUserList');
   container.innerHTML = `<div class="admin-empty">// Loading users…</div>`;
   try {
-    const snap = await getDocs(query(collection(db, 'users'), orderBy('createdAt', 'desc')));
+    const snap = await getDocs(collection(db, 'users'));
     _allAdminUsers = [];
     snap.forEach(d => _allAdminUsers.push({ id: d.id, ...d.data() }));
 
