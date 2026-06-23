@@ -288,7 +288,7 @@ async function runSearch(val) {
       drop.innerHTML = `<div class="search-empty">// No results for "${val}"</div>`;
     } else {
       drop.innerHTML = merged.map(r => `
-        <div class="search-result-item" onclick="${r.id ? `openProjectPage('${r.id}')` : `showToast('Opening ${r.title}…','info')`};document.getElementById('searchDrop').classList.remove('open');">
+        <div class="search-result-item" onclick="openSearchResult('${r.id || ''}','${r.title.replace(/'/g,"\\'")}');document.getElementById('searchDrop').classList.remove('open');">
           <div class="search-result-icon">${r.emoji || r.icon || '📦'}</div>
           <div class="search-result-meta">
             <div class="search-result-title">${r.title}</div>
@@ -305,7 +305,7 @@ async function runSearch(val) {
       drop.innerHTML = `<div class="search-empty">// No results for "${val}"</div>`;
     } else {
       drop.innerHTML = localResults.map(r => `
-        <div class="search-result-item" onclick="showToast('Opening ${r.title}…','info');document.getElementById('searchDrop').classList.remove('open');">
+        <div class="search-result-item" onclick="openSearchResult('','${r.title.replace(/'/g,"\\'")}');document.getElementById('searchDrop').classList.remove('open');">
           <div class="search-result-icon">${r.icon}</div>
           <div class="search-result-meta">
             <div class="search-result-title">${r.title}</div>
@@ -318,6 +318,32 @@ async function runSearch(val) {
 }
 function openSearchDrop()  { if (document.getElementById('globalSearch').value) document.getElementById('searchDrop').classList.add('open'); }
 function closeSearchDrop() { setTimeout(() => document.getElementById('searchDrop').classList.remove('open'), 200); }
+
+async function openSearchResult(id, title) {
+  document.getElementById('searchDrop').classList.remove('open');
+  document.getElementById('globalSearch').value = '';
+  // If we already have the Firestore doc id, open directly
+  if (id) {
+    openProjectPage(id);
+    return;
+  }
+  // Otherwise search Firestore by exact title
+  showToast(`Searching for "${title}"…`, 'info');
+  try {
+    if (window._fb && window._fb.firestoreSearch) {
+      const results = await window._fb.firestoreSearch(title);
+      // Find closest title match
+      const match = results.find(r => r.title.toLowerCase() === title.toLowerCase()) || results[0];
+      if (match) {
+        openProjectPage(match.id);
+        return;
+      }
+    }
+    showToast(`"${title}" isn't published on the platform yet`, 'info');
+  } catch (err) {
+    showToast(`Could not open "${title}"`, 'error');
+  }
+}
 
 function subscribeNewsletter() {
   const email = document.getElementById('nlEmail').value.trim();
