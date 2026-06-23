@@ -74,9 +74,13 @@
       menuEmail.textContent  = user.email;
       if (pubWarn) pubWarn.style.display = 'none';
       logEvent(analytics, 'user_session', { uid: user.uid });
+      const adminBtn = document.getElementById('adminNavBtn');
+      if (adminBtn) adminBtn.style.display = user.uid === '88Y7aAC2lNcsnXk2LoqtqLxwijS2' ? 'flex' : 'none';
     } else {
       navAuth.style.display  = 'flex';
       navUser.style.display  = 'none';
+      const adminBtn = document.getElementById('adminNavBtn');
+      if (adminBtn) adminBtn.style.display = 'none';
     }
   });
 
@@ -1133,14 +1137,6 @@ window.unsaveFromDash                  = unsaveFromDash;
 
 // ⚠️ Replace this with your actual Firebase UID
 const ADMIN_UID = '88Y7aAC2lNcsnXk2LoqtqLxwijS2';
-
-// Show admin button in nav if current user is admin
-onAuthStateChanged(auth, (user) => {
-  const adminBtn = document.getElementById('adminNavBtn');
-  if (adminBtn) {
-    adminBtn.style.display = (user && user.uid === ADMIN_UID) ? 'flex' : 'none';
-  }
-});
 
 // ---- State ----
 let _allAdminUsers    = [];
