@@ -25,17 +25,17 @@
 <!-- NAVBAR -->
 <nav>
   <div class="nav-inner">
-    <a href="#" class="logo" onclick="window.scrollTo({top:0,behavior:'smooth'});return false;">
+    <a href="#" class="logo">
       <div class="logo-mark">SD</div>
       Solo<span>dev</span>
     </a>
     <div class="nav-links">
-      <a href="#discover" class="nav-link active" onclick="document.getElementById('discover').scrollIntoView({behavior:'smooth'});return false;">Browse</a>
-      <a href="#" class="nav-link" onclick="showToast('Top Rated coming soon!','info');return false;">Top Rated</a>
-      <a href="#" class="nav-link" onclick="showToast('New &amp; Trending coming soon!','info');return false;">New &amp; Trending</a>
-      <a href="#" class="nav-link" onclick="switchTab(document.querySelector('.tab-btn:nth-child(1)'), 'all');document.getElementById('discover').scrollIntoView({behavior:'smooth'});toggleChip(document.querySelectorAll('.chip')[1]);return false;">Free</a>
-      <a href="#" class="nav-link" onclick="document.querySelector('.sec-head h2').closest('section, div')?.scrollIntoView({behavior:'smooth'});showToast('Spotlight Creators ↓','info');return false;">Creators</a>
-      <a href="#" class="nav-link" onclick="switchTab(document.querySelectorAll('.tab-btn')[5], 'posts');document.getElementById('discover').scrollIntoView({behavior:'smooth'});return false;">Devlogs</a>
+      <a href="#discover" class="nav-link active">Browse</a>
+      <a href="#" class="nav-link">Top Rated</a>
+      <a href="#" class="nav-link">New &amp; Trending</a>
+      <a href="#" class="nav-link">Free</a>
+      <a href="#" class="nav-link">Creators</a>
+      <a href="#" class="nav-link">Devlogs</a>
     </div>
     <div class="nav-search-wrap">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
@@ -85,6 +85,9 @@
           </div>
           <div class="nav-user-menu-item" onclick="showToast('Profile coming soon!','info'); toggleUserMenu();">
             <span>👤</span> Profile
+          </div>
+          <div class="nav-user-menu-item" id="adminNavBtn" style="display:none;" onclick="openAdminPanel(); toggleUserMenu();">
+            <span>🛡</span> Admin Panel
           </div>
           <div class="nav-user-menu-item danger" onclick="signOut()">
             <span>🚪</span> Sign out
@@ -955,17 +958,11 @@
     <div class="dash-tabs">
       <button class="dash-tab active" onclick="switchDashTab(this,'dProjects')">📦 My Projects</button>
       <button class="dash-tab" onclick="switchDashTab(this,'dAnalytics')">📊 Analytics</button>
-      <button class="dash-tab" onclick="switchDashTab(this,'dSaved')">🔖 Saved</button>
       <button class="dash-tab" onclick="switchDashTab(this,'dProfile')">👤 Profile</button>
     </div>
     <div class="dash-panel active" id="dProjects">
       <div id="dashProjectList">
         <div style="text-align:center;padding:3rem;color:var(--text3);font-family:var(--font-mono);">// Loading your projects…</div>
-      </div>
-    </div>
-    <div class="dash-panel" id="dSaved">
-      <div id="dashSavedList">
-        <div style="text-align:center;padding:3rem;color:var(--text3);font-family:var(--font-mono);">// Loading saved projects…</div>
       </div>
     </div>
     <div class="dash-panel" id="dAnalytics">
@@ -1182,6 +1179,90 @@
 <!-- =====================================================
      APP LOGIC
 ====================================================== -->
-<script defer src="app.js"></script>
+<script src="app.js"></script>
+
+<!-- ===== ADMIN PANEL ===== -->
+<div class="dash-overlay" id="adminOverlay">
+  <div class="dash-header">
+    <div style="display:flex;align-items:center;gap:12px;">
+      <button onclick="closeAdminPanel()" style="background:none;border:none;color:var(--text2);cursor:pointer;font-size:1.2rem;padding:4px;">←</button>
+      <h2 style="color:var(--red);">🛡 Admin Panel</h2>
+      <span style="font-size:0.65rem;font-family:var(--font-mono);color:var(--red);background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.25);padding:2px 8px;border-radius:4px;text-transform:uppercase;letter-spacing:0.08em;">Restricted</span>
+    </div>
+    <div style="display:flex;gap:8px;">
+      <button class="btn btn-ghost btn-sm" onclick="adminRefresh()">⟳ Refresh</button>
+    </div>
+  </div>
+  <div class="dash-inner">
+    <!-- Stats Row -->
+    <div class="dash-stats" id="adminStats">
+      <div class="dash-stat-card">
+        <div class="dash-stat-label">Total Users</div>
+        <div class="dash-stat-val" id="adminStatUsers">—</div>
+        <div class="dash-stat-sub">registered accounts</div>
+      </div>
+      <div class="dash-stat-card">
+        <div class="dash-stat-label">Total Projects</div>
+        <div class="dash-stat-val" id="adminStatProjects">—</div>
+        <div class="dash-stat-sub">published</div>
+      </div>
+      <div class="dash-stat-card">
+        <div class="dash-stat-label">Banned Users</div>
+        <div class="dash-stat-val" id="adminStatBanned" style="color:var(--red);">—</div>
+        <div class="dash-stat-sub">accounts restricted</div>
+      </div>
+      <div class="dash-stat-card">
+        <div class="dash-stat-label">Reports</div>
+        <div class="dash-stat-val" id="adminStatReports">—</div>
+        <div class="dash-stat-sub">pending review</div>
+      </div>
+    </div>
+    <!-- Tabs -->
+    <div class="dash-tabs">
+      <button class="dash-tab active" onclick="switchAdminTab(this,'adminUsers')">👤 Users</button>
+      <button class="dash-tab" onclick="switchAdminTab(this,'adminProjects')">📦 Projects</button>
+    </div>
+    <!-- Users Panel -->
+    <div class="dash-panel active" id="adminUsers">
+      <div style="display:flex;gap:10px;margin-bottom:1.2rem;flex-wrap:wrap;align-items:center;">
+        <input type="text" class="form-input" id="adminUserSearch" placeholder="// Search by name or email…" style="flex:1;min-width:200px;max-width:360px;" oninput="filterAdminUsers(this.value)">
+        <div style="display:flex;gap:6px;">
+          <button class="chip active" onclick="filterAdminUserStatus(this,'all')">All</button>
+          <button class="chip" onclick="filterAdminUserStatus(this,'active')">Active</button>
+          <button class="chip" onclick="filterAdminUserStatus(this,'banned')">Banned</button>
+        </div>
+      </div>
+      <div id="adminUserList">
+        <div style="text-align:center;padding:3rem;color:var(--text3);font-family:var(--font-mono);">// Loading users…</div>
+      </div>
+    </div>
+    <!-- Projects Panel -->
+    <div class="dash-panel" id="adminProjects">
+      <div style="display:flex;gap:10px;margin-bottom:1.2rem;align-items:center;">
+        <input type="text" class="form-input" id="adminProjectSearch" placeholder="// Search by title or author…" style="flex:1;min-width:200px;max-width:360px;" oninput="filterAdminProjects(this.value)">
+      </div>
+      <div id="adminProjectList">
+        <div style="text-align:center;padding:3rem;color:var(--text3);font-family:var(--font-mono);">// Loading projects…</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Admin Confirm Modal -->
+<div class="overlay" id="adminConfirmModal">
+  <div class="modal" style="max-width:420px;">
+    <div class="modal-hd">
+      <span id="adminConfirmTitle" style="font-family:var(--font-display);font-weight:700;">Confirm Action</span>
+      <button onclick="closeModal('adminConfirmModal')" style="background:none;border:none;color:var(--text2);cursor:pointer;font-size:1.2rem;">✕</button>
+    </div>
+    <div class="modal-bd">
+      <p id="adminConfirmMsg" style="color:var(--text2);font-size:0.9rem;line-height:1.6;margin-bottom:1.5rem;"></p>
+      <div style="display:flex;gap:10px;">
+        <button class="btn btn-ghost" style="flex:1;" onclick="closeModal('adminConfirmModal')">Cancel</button>
+        <button class="btn" id="adminConfirmBtn" style="flex:1;background:var(--red);color:#fff;border-color:var(--red);">Confirm</button>
+      </div>
+    </div>
+  </div>
+</div>
 </body>
 </html>
