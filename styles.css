@@ -652,6 +652,17 @@ nav {
 }
 .card-btn:hover { background: var(--accent); color: var(--bg); border-color: var(--accent); box-shadow: 0 0 8px var(--accent-glow); }
 
+/* ===== LIKE BUTTON ===== */
+.like-btn {
+  display: inline-flex; align-items: center; gap: 5px;
+  transition: all var(--transition);
+}
+.like-btn svg { transition: transform 0.15s; }
+.like-btn:hover { color: #ef4444; border-color: rgba(239,68,68,0.4); background: rgba(239,68,68,0.08); }
+.like-btn:hover svg { transform: scale(1.2); }
+.like-btn.liked { color: #ef4444; border-color: rgba(239,68,68,0.4); background: rgba(239,68,68,0.1); }
+.like-btn.liked svg { fill: #ef4444; stroke: #ef4444; }
+
 /* ===== CREATOR CARDS ===== */
 .creator-card {
   background: var(--surface); border: 1px solid var(--border);
