@@ -56,15 +56,6 @@
   let currentUser     = null;
   window._uploadedFileURL = null;
 
-  // ── Admin / owner control ───────────────────────────────────────────────
-  // Put your own Firebase Auth UID(s) here. Find yours by signing in, then
-  // opening the browser console and running: window._fb.currentUser().uid
-  const ADMIN_UIDS = ["88Y7aAC2lNcsnXk2LoqtqLxwijS2"];
-  function isAdminUser() {
-    const u = currentUser;
-    return !!(u && ADMIN_UIDS.includes(u.uid));
-  }
-
   onAuthStateChanged(auth, (user) => {
     currentUser = user;
     const navAuth    = document.getElementById('navAuthButtons');
@@ -87,45 +78,20 @@
       navAuth.style.display  = 'flex';
       navUser.style.display  = 'none';
     }
-
-    // Re-render the project grid whenever sign-in state changes so
-    // owner/admin controls (Edit/Delete) reflect the current user.
-    if (window._fb && window._fb.loadProjects) {
-      document.querySelectorAll('#mainGrid .firestore-card').forEach(c => c.remove());
-      window._fb.loadProjects(window._fb._currentFilter || 'all');
-    }
   });
 
   window._fb = {
-        isAdmin: isAdminUser,
         async loadProjects(filterType = 'all') {
-      window._fb._currentFilter = filterType;
       const grid     = document.getElementById('mainGrid');
       const skeleton = document.getElementById('skeletonCard');
       try {
         let q;
-        let clientSortByRating = false;
         if (filterType === 'all') {
           q = query(collection(db, 'projects'), orderBy('createdAt', 'desc'), limit(20));
-        } else if (filterType === 'top-rated') {
-          // Sort client-side so projects without a rating field aren't excluded.
-          q = query(collection(db, 'projects'), orderBy('createdAt', 'desc'), limit(50));
-          clientSortByRating = true;
-        } else if (filterType === 'free') {
-          q = query(collection(db, 'projects'), where('pricing', '==', 'Free'), limit(20));
         } else {
           q = query(collection(db, 'projects'), where('type', '==', filterType), limit(20));
         }
-        let snapshot = await getDocs(q);
-        if (clientSortByRating) {
-          const docs = snapshot.docs.slice().sort((a, b) => {
-            const ra = Number(a.data().rating) || 0;
-            const rb = Number(b.data().rating) || 0;
-            if (rb !== ra) return rb - ra;
-            return (b.data().views || 0) - (a.data().views || 0);
-          }).slice(0, 20);
-          snapshot = { empty: docs.length === 0, size: docs.length, forEach: (fn) => docs.forEach(fn) };
-        }
+        const snapshot = await getDocs(q);
         if (skeleton) skeleton.remove();
         if (snapshot.empty) return;
         const typeMap = {
@@ -149,8 +115,6 @@
             : `<div class="card-thumb-bg" style="background:linear-gradient(135deg,#0f172a,#1e293b);">${info.emoji}</div>`;
           const docId   = docSnap.id;
           const isOwner = currentUser && currentUser.uid === p.authorId;
-          const isAdmin = isAdminUser();
-          const canDelete = isOwner || isAdmin;
           const card = document.createElement('div');
           card.className = 'card firestore-card';
           card.setAttribute('data-doc-id', docId);
@@ -160,7 +124,7 @@
               ${thumb}
               <span class="type-badge ${info.cls}">${p.type || 'Project'}</span>
               <span class="corner-badge cb-new">New</span>
-              <button class="card-save-btn" onclick="event.stopPropagation();saveItem(this,'${(p.title||'').replace(/'/g,"\'")}')">🔖</button>
+              <button class="card-save-btn" onclick="event.stopPropagation();saveItem(this,'${(p.title||'').replace(/'/g,"\\'")}','${docId}')">🔖</button>
             </div>
             <div class="card-body">
               <div class="card-author-row">
@@ -171,8 +135,6 @@
                 ${isOwner ? `<div style="display:flex;gap:4px;">
                   <button onclick="event.stopPropagation();openEditModal('${docId}')" style="font-size:0.6rem;padding:2px 7px;border:1px solid var(--border2);border-radius:3px;background:var(--surface2);color:var(--text3);cursor:pointer;font-family:var(--font-mono);text-transform:uppercase;letter-spacing:0.04em;">Edit</button>
                   <button onclick="event.stopPropagation();confirmDelete('${docId}','${(p.title||'').replace(/'/g,"\'")}')" style="font-size:0.6rem;padding:2px 7px;border:1px solid rgba(239,68,68,0.3);border-radius:3px;background:var(--red-dim);color:var(--red);cursor:pointer;font-family:var(--font-mono);text-transform:uppercase;letter-spacing:0.04em;">Del</button>
-                </div>` : isAdmin ? `<div style="display:flex;gap:4px;">
-                  <button onclick="event.stopPropagation();confirmDelete('${docId}','${(p.title||'').replace(/'/g,"\'")}')" style="font-size:0.6rem;padding:2px 7px;border:1px solid rgba(239,68,68,0.3);border-radius:3px;background:var(--red-dim);color:var(--red);cursor:pointer;font-family:var(--font-mono);text-transform:uppercase;letter-spacing:0.04em;">Admin Del</button>
                 </div>` : ''}
               </div>
               <div class="card-title">${escapeHtml(p.title || 'Untitled')}</div>
@@ -183,6 +145,7 @@
               <div class="card-meta">
                 <span class="meta-item">${info.meta}</span>
                 <span class="meta-item">${price}</span>
+                <span class="meta-item">❤️ ${p.likesCount || 0}</span>
               </div>
               ${p.externalLink
                 ? `<a href="${p.externalLink}" target="_blank" class="card-btn" onclick="event.stopPropagation();">View →</a>`
@@ -479,7 +442,8 @@
       logEvent(analytics, 'newsletter_subscribe');
     },
 
-    currentUser: () => currentUser
+    currentUser: () => currentUser,
+    firestoreSearch: (val) => firestoreSearch(val)
   };
 
   function showAuthError(msg) {
@@ -549,6 +513,7 @@ function switchDashTab(btn, panelId) {
   document.getElementById(panelId).classList.add('active');
   if (panelId === 'dProjects') loadDashboardProjects();
   if (panelId === 'dAnalytics') loadDashboardAnalytics();
+  if (panelId === 'dSaved') loadSavedProjects();
   if (panelId === 'dProfile') loadDashboardProfile();
 }
 
@@ -691,13 +656,14 @@ async function openProjectPage(docId) {
     document.getElementById('ppMeta').innerHTML = metaHtml.join('<span style="color:var(--border2);"> · </span>');
     const actionsHtml = [];
     if (p.externalLink) actionsHtml.push(`<a href="${escapeHtml(p.externalLink)}" target="_blank" class="btn btn-primary"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/></svg> Download / Play</a>`);
-    actionsHtml.push(`<button class="btn btn-ghost" onclick="saveItem(this,'${escapeHtml(p.title || '')}')"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg> Save</button>`);
+    actionsHtml.push(`<button class="btn btn-ghost like-btn" id="ppLikeBtn" data-count="0" onclick="toggleLike('${docId}', this)"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg> 0</button>`);
+    actionsHtml.push(`<button class="btn btn-ghost" id="ppSaveBtn" onclick="saveItemFirestore('${docId}','${escapeHtml(p.title || '')}', this)"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg> Save</button>`);
     actionsHtml.push(`<button class="btn btn-ghost" onclick="shareCurrentProject()"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg> Share</button>`);
     const isOwner = user && user.uid === p.authorId;
-    const isAdmin = isAdminUser();
     if (isOwner) actionsHtml.push(`<button class="btn btn-ghost" onclick="openEditModal('${docId}');closeProjectPage();"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg> Edit</button>`);
-    if (isOwner || isAdmin) actionsHtml.push(`<button class="btn btn-ghost" style="color:var(--red);border-color:rgba(239,68,68,0.3);" onclick="confirmDelete('${docId}','${escapeHtml((p.title||'').replace(/'/g,"\\'"))}');closeProjectPage();"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg> ${isOwner ? 'Delete' : 'Remove (Admin)'}</button>`);
     document.getElementById('ppActions').innerHTML = actionsHtml.join('');
+    const likeBtn = document.getElementById('ppLikeBtn');
+    if (likeBtn) initLikeButton(docId, likeBtn);
     document.getElementById('ppDesc').textContent = p.description || p.tagline || 'No description provided.';
     const tagsEl = document.getElementById('ppTags');
     if (p.tags && p.tags.length) tagsEl.innerHTML = p.tags.map(t => `<span class="tag">${escapeHtml(t)}</span>`).join(''); else tagsEl.innerHTML = '';
@@ -920,8 +886,8 @@ function shareCreatorProfile() { if (navigator.clipboard) navigator.clipboard.wr
 
 async function loadComments(projectId) {
   const listEl = document.getElementById('ppCommentsList');
-  try { const q = query(collection(db, 'projects', projectId, 'comments'), orderBy('createdAt', 'desc')); const snapshot = await getDocs(q); document.getElementById('ppCommentsTitle').textContent = `Comments (${snapshot.size})`; if (snapshot.empty) { listEl.innerHTML = `<div class="comments-empty">No comments yet. Be the first to share your thoughts!</div>`; return; } let html = ''; snapshot.forEach(docSnap => { const c = docSnap.data(); const dateStr = c.createdAt?.toDate ? c.createdAt.toDate().toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '—'; const isOwner = window._fb.currentUser() && window._fb.currentUser().uid === c.authorId; const isAdmin = window._fb.isAdmin && window._fb.isAdmin(); const canDeleteComment = isOwner || isAdmin; html += `<div class="comment-item" data-comment-id="${docSnap.id}"><div class="comment-avatar">${(c.authorName || '?').slice(0, 2).toUpperCase()}</div><div class="comment-body"><div class="comment-author-row"><span class="comment-author">${escapeHtml(c.authorName || 'Anonymous')}</span>${canDeleteComment ? `<button class="comment-delete-btn" onclick="deleteComment('${projectId}', '${docSnap.id}')">${isOwner ? 'Delete' : 'Remove (Admin)'}</button>` : ''}</div><div class="comment-text">${escapeHtml(c.text || '')}</div><div class="comment-time">${dateStr}</div></div></div>`; }); listEl.innerHTML = html;
-  } catch (err) { console.error('Load comments error:', err); listEl.innerHTML = `<div class="comments-empty">Error loading comments: ${escapeHtml(err.message || 'unknown error')}</div>`; }
+  try { const q = query(collection(db, 'projects', projectId, 'comments'), orderBy('createdAt', 'desc')); const snapshot = await getDocs(q); document.getElementById('ppCommentsTitle').textContent = `Comments (${snapshot.size})`; if (snapshot.empty) { listEl.innerHTML = `<div class="comments-empty">No comments yet. Be the first to share your thoughts!</div>`; return; } let html = ''; snapshot.forEach(docSnap => { const c = docSnap.data(); const dateStr = c.createdAt?.toDate ? c.createdAt.toDate().toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '—'; const isOwner = window._fb.currentUser() && window._fb.currentUser().uid === c.authorId; html += `<div class="comment-item" data-comment-id="${docSnap.id}"><div class="comment-avatar">${(c.authorName || '?').slice(0, 2).toUpperCase()}</div><div class="comment-body"><div class="comment-author-row"><span class="comment-author">${escapeHtml(c.authorName || 'Anonymous')}</span>${isOwner ? `<button class="comment-delete-btn" onclick="deleteComment('${projectId}', '${docSnap.id}')">Delete</button>` : ''}</div><div class="comment-text">${escapeHtml(c.text || '')}</div><div class="comment-time">${dateStr}</div></div></div>`; }); listEl.innerHTML = html;
+  } catch (err) { listEl.innerHTML = `<div class="comments-empty">Error loading comments</div>`; }
 }
 
 async function submitComment() {
@@ -946,6 +912,185 @@ async function handleNotifClick(notifId, type, projectId) { try { await updateDo
 async function markAllRead() { if (!window._fb || !window._fb.currentUser()) return; try { const user = window._fb.currentUser(); const q = query(collection(db, 'notifications'), where('recipientId', '==', user.uid), where('read', '==', false)); const snapshot = await getDocs(q); const batch = []; snapshot.forEach(docSnap => { batch.push(updateDoc(doc(db, 'notifications', docSnap.id), { read: true })); }); await Promise.all(batch); showToast('All notifications marked as read', 'success'); } catch (err) { showToast('Error: ' + err.message, 'error'); } }
 document.addEventListener('click', (e) => { const panel = document.getElementById('notifPanel'); const btn = document.getElementById('notifBtn'); if (panel && !panel.contains(e.target) && e.target !== btn && !btn.contains(e.target)) panel.classList.remove('open'); });
 
+/* ===== LIKES ===== */
+async function toggleLike(projectId, btn) {
+  if (!window._fb || !window._fb.currentUser()) {
+    showToast('Sign in to like projects', 'info');
+    openModal('loginModal');
+    return;
+  }
+  const user = window._fb.currentUser();
+  const likeRef = doc(db, 'projects', projectId, 'likes', user.uid);
+  const projectRef = doc(db, 'projects', projectId);
+  try {
+    const likeSnap = await getDoc(likeRef);
+    if (likeSnap.exists()) {
+      await deleteDoc(likeRef);
+      await updateDoc(projectRef, { likesCount: increment(-1) });
+      if (btn) {
+        const count = parseInt(btn.dataset.count || '1') - 1;
+        btn.dataset.count = count;
+        btn.innerHTML = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg> ${count}`;
+        btn.classList.remove('liked');
+      }
+    } else {
+      await setDoc(likeRef, { userId: user.uid, createdAt: serverTimestamp() });
+      await updateDoc(projectRef, { likesCount: increment(1) });
+      if (btn) {
+        const count = parseInt(btn.dataset.count || '0') + 1;
+        btn.dataset.count = count;
+        btn.innerHTML = `<svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg> ${count}`;
+        btn.classList.add('liked');
+      }
+      // notify project owner
+      const projectSnap = await getDoc(projectRef);
+      if (projectSnap.exists()) {
+        const p = projectSnap.data();
+        if (p.authorId && p.authorId !== user.uid) {
+          await addDoc(collection(db, 'notifications'), {
+            recipientId: p.authorId, senderId: user.uid,
+            senderName: user.displayName || 'Someone', type: 'like',
+            projectId, projectTitle: p.title || 'your project',
+            message: `${user.displayName || 'Someone'} liked "${p.title || 'your project'}"`,
+            read: false, createdAt: serverTimestamp()
+          });
+        }
+      }
+    }
+    logEvent(analytics, 'project_like', { projectId });
+  } catch (err) {
+    showToast('Like failed: ' + err.message, 'error');
+  }
+}
+
+async function initLikeButton(projectId, btn) {
+  try {
+    const projectSnap = await getDoc(doc(db, 'projects', projectId));
+    const count = projectSnap.exists() ? (projectSnap.data().likesCount || 0) : 0;
+    btn.dataset.count = count;
+    const user = window._fb.currentUser();
+    if (user) {
+      const likeSnap = await getDoc(doc(db, 'projects', projectId, 'likes', user.uid));
+      if (likeSnap.exists()) {
+        btn.innerHTML = `<svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg> ${count}`;
+        btn.classList.add('liked');
+        return;
+      }
+    }
+    btn.innerHTML = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg> ${count}`;
+  } catch (err) { btn.innerHTML = '♡ 0'; }
+}
+
+/* ===== SAVED / BOOKMARKS ===== */
+async function saveItemFirestore(projectId, title, btn) {
+  if (!window._fb || !window._fb.currentUser()) {
+    showToast('Sign in to save projects', 'info');
+    openModal('loginModal');
+    return;
+  }
+  const user = window._fb.currentUser();
+  const saveRef = doc(db, 'users', user.uid, 'saved', projectId);
+  try {
+    const saveSnap = await getDoc(saveRef);
+    if (saveSnap.exists()) {
+      await deleteDoc(saveRef);
+      if (btn) btn.textContent = '🔖';
+      showToast(`Removed "${title}" from saved`, 'info');
+    } else {
+      await setDoc(saveRef, { projectId, title, savedAt: serverTimestamp() });
+      if (btn) btn.textContent = '🔖✓';
+      showToast(`"${title}" saved to your collection`, 'success');
+    }
+    logEvent(analytics, 'project_save', { projectId });
+  } catch (err) {
+    showToast('Save failed: ' + err.message, 'error');
+  }
+}
+
+async function loadSavedProjects() {
+  const container = document.getElementById('dashSavedList');
+  if (!window._fb.currentUser()) {
+    container.innerHTML = `<div style="text-align:center;padding:3rem;color:var(--text3);font-family:var(--font-mono);">// Sign in to view saved projects</div>`;
+    return;
+  }
+  container.innerHTML = `<div style="text-align:center;padding:3rem;color:var(--text3);font-family:var(--font-mono);">// Loading…</div>`;
+  try {
+    const user = window._fb.currentUser();
+    const snap = await getDocs(query(collection(db, 'users', user.uid, 'saved'), orderBy('savedAt', 'desc')));
+    if (snap.empty) {
+      container.innerHTML = `<div style="text-align:center;padding:4rem 2rem;"><div style="font-size:3rem;margin-bottom:1rem;">🔖</div><div style="font-family:var(--font-display);font-size:1.1rem;font-weight:700;color:var(--text);margin-bottom:0.5rem;">Nothing saved yet</div><div style="font-size:0.85rem;color:var(--text2);">Hit the bookmark icon on any project to save it here.</div></div>`;
+      return;
+    }
+    // Fetch full project data for each saved item
+    const rows = await Promise.all(snap.docs.map(async d => {
+      const s = d.data();
+      try {
+        const pSnap = await getDoc(doc(db, 'projects', s.projectId));
+        return pSnap.exists() ? { id: s.projectId, ...pSnap.data() } : null;
+      } catch { return null; }
+    }));
+    const typeEmoji = { 'Game':'🎮','App / Tool':'📱','Video':'🎬','Photo / Art':'📷','Post':'✏️','Music / Audio':'🎵' };
+    let html = '';
+    rows.filter(Boolean).forEach(p => {
+      const emoji = typeEmoji[p.type] || '📦';
+      const thumbHtml = p.fileURL
+        ? `<img src="${p.fileURL}" onerror="this.remove();this.parentElement.textContent='${emoji}';">`
+        : emoji;
+      html += `<div class="dash-project-row">
+        <div class="dash-project-thumb" onclick="closeDashboard();openProjectPage('${p.id}')" style="cursor:pointer;">${thumbHtml}</div>
+        <div class="dash-project-info">
+          <div class="dash-project-title" onclick="closeDashboard();openProjectPage('${p.id}')" style="cursor:pointer;">${escapeHtml(p.title || 'Untitled')}</div>
+          <div class="dash-project-meta"><span>${p.type || 'Project'}</span><span>·</span><span>by ${escapeHtml(p.authorName || '?')}</span><span>·</span><span>👁 ${p.views || 0}</span><span>·</span><span>❤️ ${p.likesCount || 0}</span></div>
+        </div>
+        <div class="dash-project-actions">
+          <button class="dash-action-btn" onclick="closeDashboard();openProjectPage('${p.id}')">View</button>
+          <button class="dash-action-btn danger" onclick="unsaveFromDash('${p.id}','${escapeHtml(p.title||'').replace(/'/g,"\\'")}',this)">Remove</button>
+        </div>
+      </div>`;
+    });
+    container.innerHTML = html;
+  } catch (err) {
+    container.innerHTML = `<div style="text-align:center;padding:3rem;color:var(--red);font-family:var(--font-mono);">// Error: ${escapeHtml(err.message)}</div>`;
+  }
+}
+
+async function unsaveFromDash(projectId, title, btn) {
+  if (!window._fb.currentUser()) return;
+  const user = window._fb.currentUser();
+  try {
+    await deleteDoc(doc(db, 'users', user.uid, 'saved', projectId));
+    btn.closest('.dash-project-row').remove();
+    showToast(`Removed "${title}" from saved`, 'info');
+    const remaining = document.querySelectorAll('#dashSavedList .dash-project-row').length;
+    if (remaining === 0) loadSavedProjects();
+  } catch (err) { showToast('Error: ' + err.message, 'error'); }
+}
+
+/* ===== FIRESTORE SEARCH ===== */
+async function firestoreSearch(val) {
+  if (!val || val.length < 2) return [];
+  try {
+    // Firestore prefix search: >= val, <= val + '\uf8ff'
+    const end = val + '\uf8ff';
+    const titleQ = query(
+      collection(db, 'projects'),
+      where('title', '>=', val),
+      where('title', '<=', end),
+      limit(8)
+    );
+    const snap = await getDocs(titleQ);
+    const results = [];
+    snap.forEach(d => {
+      const p = d.data();
+      results.push({ id: d.id, title: p.title, type: p.type, emoji: { 'Game':'🎮','App / Tool':'📱','Video':'🎬','Photo / Art':'📷','Post':'✏️','Music / Audio':'🎵' }[p.type] || '📦' });
+    });
+    return results;
+  } catch (err) {
+    console.warn('Firestore search error:', err);
+    return [];
+  }
+}
+
 // ===== Expose module-scoped functions to global scope for inline onclick handlers =====
 window.openDashboard         = openDashboard;
 window.closeDashboard        = closeDashboard;
@@ -969,3 +1114,7 @@ window.shareCreatorProfile             = shareCreatorProfile;
 window.toggleFollowFromCreatorPage     = toggleFollowFromCreatorPage;
 window.openCreatorProfileFromProjectPage = openCreatorProfileFromProjectPage;
 window.viewMyPublicProfile             = viewMyPublicProfile;
+window.toggleLike                      = toggleLike;
+window.saveItemFirestore               = saveItemFirestore;
+window.loadSavedProjects               = loadSavedProjects;
+window.unsaveFromDash                  = unsaveFromDash;
