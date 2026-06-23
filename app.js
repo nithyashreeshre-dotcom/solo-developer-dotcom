@@ -116,56 +116,6 @@ function switchTab(btn, type) {
   if (window._fb) window._fb.loadProjects(fsType);
 }
 
-/* Top nav links: Browse / Top Rated / New & Trending / Free / Creators / Devlogs */
-function setActiveNavLink(el) {
-  document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
-  if (el) el.classList.add('active');
-}
-
-function runDiscoverFilter(filterType, showStaticCards) {
-  document.querySelectorAll('.tab-btn').forEach(t => t.classList.remove('active'));
-  const allTabBtn = document.querySelector('.tab-btn[onclick*="\'all\'"]');
-  if (filterType === 'all' && allTabBtn) allTabBtn.classList.add('active');
-  document.querySelectorAll('#mainGrid .firestore-card').forEach(c => c.remove());
-  const grid = document.getElementById('mainGrid');
-  const sk = document.createElement('div');
-  sk.id = 'skeletonCard';
-  sk.className = 'card skeleton-card';
-  sk.style.cssText = 'opacity:0.4;pointer-events:none;';
-  sk.innerHTML = `<div class="card-thumb"><div class="card-thumb-bg" style="background:var(--surface2);">⏳</div></div><div class="card-body"><div class="card-title" style="color:var(--text3);font-family:var(--font-mono);">// Loading…</div></div>`;
-  grid.prepend(sk);
-  document.querySelectorAll('#mainGrid .static-card').forEach(c => {
-    c.style.display = showStaticCards ? '' : 'none';
-  });
-  if (window._fb) window._fb.loadProjects(filterType);
-}
-
-function navGoBrowse(el) {
-  setActiveNavLink(el);
-  runDiscoverFilter('all', true);
-}
-
-function navGoNewTrending(el) {
-  setActiveNavLink(el);
-  runDiscoverFilter('all', true); // newest first is already the default sort
-}
-
-function navGoTopRated(el) {
-  setActiveNavLink(el);
-  runDiscoverFilter('top-rated', false);
-}
-
-function navGoFree(el) {
-  setActiveNavLink(el);
-  runDiscoverFilter('free', false);
-}
-
-function navGoSection(el, sectionId) {
-  setActiveNavLink(el);
-  const target = document.getElementById(sectionId);
-  if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
-}
-
 function toggleChip(el) {
   document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
   el.classList.add('active');
@@ -234,9 +184,14 @@ function saveDraftToFirestore() {
   window._fb.saveDraft(document.getElementById('pubTitle').value.trim(), document.getElementById('pubDesc').value.trim());
 }
 
-function saveItem(btn, name) {
-  btn.textContent = '🔖';
-  showToast(`"${name}" saved to your collection`, 'success');
+function saveItem(btn, name, projectId) {
+  if (projectId) {
+    saveItemFirestore(projectId, name, btn);
+  } else {
+    // fallback for static cards
+    btn.textContent = '🔖✓';
+    showToast(`"${name}" saved to your collection`, 'success');
+  }
 }
 function toggleFollow(btn) {
   const isFollowing = btn.classList.toggle('following');
@@ -286,40 +241,63 @@ function loadMore() {
   }, 900);
 }
 
-const searchData = [
-  {title:'Run From Epsteins',type:'Game',icon:'🌲'},
-  {title:'Void Wanderer',type:'Game',icon:'🚀'},
-  {title:'FocusForest',type:'App',icon:'🌿'},
-  {title:'GridLock Puzzle',type:'Game',icon:'🧩'},
-  {title:'DevPad',type:'App',icon:'🔧'},
-  {title:'Urban Decay Series',type:'Photo',icon:'📷'},
-  {title:'Ambient Forest Sound Pack',type:'Audio',icon:'🎵'},
-  {title:'Pixel Ruins Tileset',type:'Art',icon:'🏺'},
-  {title:'Shreevatsa',type:'Creator',icon:'👤'},
-  {title:'ArjunKodes',type:'Creator',icon:'👤'},
-];
 let searchTimeout;
-function handleSearch(val) {
+async function handleSearch(val) {
   clearTimeout(searchTimeout);
+  const drop = document.getElementById('searchDrop');
   if (!val.trim()) { closeSearchDrop(); return; }
-  searchTimeout = setTimeout(() => {
-    const q = val.toLowerCase();
-    const results = searchData.filter(d => d.title.toLowerCase().includes(q));
-    const drop = document.getElementById('searchDrop');
-    if (!results.length) {
-      drop.innerHTML = `<div class="search-empty">// No results for "${val}"</div>`;
-    } else {
-      drop.innerHTML = results.map(r => `
-        <div class="search-result-item" onclick="showToast('Opening ${r.title}…','info')">
-          <div class="search-result-icon">${r.icon}</div>
-          <div class="search-result-meta">
-            <div class="search-result-title">${r.title}</div>
-            <div class="search-result-sub">${r.type}</div>
-          </div>
-        </div>`).join('');
+
+  // Show loading state immediately
+  drop.innerHTML = `<div class="search-empty" style="color:var(--text3);">// Searching…</div>`;
+  drop.classList.add('open');
+
+  searchTimeout = setTimeout(async () => {
+    try {
+      // Run Firestore search + local fallback in parallel
+      const [fsResults] = await Promise.all([
+        window._fb?.firestoreSearch ? window._fb.firestoreSearch(val) : Promise.resolve([])
+      ]);
+
+      // Also filter local static data as fallback / extra results
+      const localData = [
+        {title:'Run From Epsteins',type:'Game',icon:'🌲'},
+        {title:'Void Wanderer',type:'Game',icon:'🚀'},
+        {title:'FocusForest',type:'App',icon:'🌿'},
+        {title:'GridLock Puzzle',type:'Game',icon:'🧩'},
+        {title:'DevPad',type:'App',icon:'🔧'},
+        {title:'Urban Decay Series',type:'Photo',icon:'📷'},
+        {title:'Ambient Forest Sound Pack',type:'Audio',icon:'🎵'},
+        {title:'Pixel Ruins Tileset',type:'Art',icon:'🏺'},
+        {title:'Shreevatsa',type:'Creator',icon:'👤'},
+        {title:'ArjunKodes',type:'Creator',icon:'👤'},
+      ];
+      const q = val.toLowerCase();
+      const localResults = localData.filter(d => d.title.toLowerCase().includes(q));
+
+      // Merge: Firestore results first, then local ones not already in Firestore results
+      const fsIds = new Set(fsResults.map(r => r.title.toLowerCase()));
+      const merged = [
+        ...fsResults,
+        ...localResults.filter(r => !fsIds.has(r.title.toLowerCase()))
+      ].slice(0, 8);
+
+      if (!merged.length) {
+        drop.innerHTML = `<div class="search-empty">// No results for "${val}"</div>`;
+      } else {
+        drop.innerHTML = merged.map(r => `
+          <div class="search-result-item" onclick="${r.id ? `openProjectPage('${r.id}')` : `showToast('Opening ${r.title}…','info')`};document.getElementById('searchDrop').classList.remove('open');">
+            <div class="search-result-icon">${r.emoji || r.icon || '📦'}</div>
+            <div class="search-result-meta">
+              <div class="search-result-title">${r.title}</div>
+              <div class="search-result-sub">${r.type}${r.id ? ' · Live' : ' · Sample'}</div>
+            </div>
+          </div>`).join('');
+      }
+      drop.classList.add('open');
+    } catch (err) {
+      drop.innerHTML = `<div class="search-empty">// Search error</div>`;
     }
-    drop.classList.add('open');
-  }, 180);
+  }, 280);
 }
 function openSearchDrop()  { if (document.getElementById('globalSearch').value) document.getElementById('searchDrop').classList.add('open'); }
 function closeSearchDrop() { setTimeout(() => document.getElementById('searchDrop').classList.remove('open'), 200); }
