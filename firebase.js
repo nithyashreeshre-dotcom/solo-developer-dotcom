@@ -1,4 +1,4 @@
-// ── Firebase imports ──────────────────────────────────────────────────────
+─────────────────
   import { initializeApp }                        from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
   import { getAnalytics, logEvent }               from "https://www.gstatic.com/firebasejs/10.12.2/firebase-analytics.js";
   import {
@@ -1127,3 +1127,263 @@ window.toggleLike                      = toggleLike;
 window.saveItemFirestore               = saveItemFirestore;
 window.loadSavedProjects               = loadSavedProjects;
 window.unsaveFromDash                  = unsaveFromDash;
+/* ==========================================================
+   ADMIN PANEL
+   ========================================================== */
+
+// ⚠️ Replace this with your actual Firebase UID
+const ADMIN_UID = '88Y7aAC2lNcsnXk2LoqtqLxwijS2';
+
+// Show admin button in nav if current user is admin
+onAuthStateChanged(auth, (user) => {
+  const adminBtn = document.getElementById('adminNavBtn');
+  if (adminBtn) {
+    adminBtn.style.display = (user && user.uid === ADMIN_UID) ? 'flex' : 'none';
+  }
+});
+
+// ---- State ----
+let _allAdminUsers    = [];
+let _allAdminProjects = [];
+let _adminUserFilter  = 'all';
+
+// ---- Open / Close ----
+window.openAdminPanel = function() {
+  const user = auth.currentUser;
+  if (!user || user.uid !== ADMIN_UID) {
+    showToast('Access denied', 'error');
+    return;
+  }
+  document.getElementById('adminOverlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+  adminLoadAll();
+};
+
+window.closeAdminPanel = function() {
+  document.getElementById('adminOverlay').classList.remove('open');
+  document.body.style.overflow = '';
+};
+
+window.adminRefresh = function() { adminLoadAll(); };
+
+window.switchAdminTab = function(btn, panelId) {
+  document.querySelectorAll('#adminOverlay .dash-tab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  document.querySelectorAll('#adminOverlay .dash-panel').forEach(p => p.classList.remove('active'));
+  document.getElementById(panelId).classList.add('active');
+};
+
+// ---- Load Everything ----
+async function adminLoadAll() {
+  adminLoadUsers();
+  adminLoadProjects();
+}
+
+// ---- USERS ----
+async function adminLoadUsers() {
+  const container = document.getElementById('adminUserList');
+  container.innerHTML = `<div class="admin-empty">// Loading users…</div>`;
+  try {
+    const snap = await getDocs(query(collection(db, 'users'), orderBy('createdAt', 'desc')));
+    _allAdminUsers = [];
+    snap.forEach(d => _allAdminUsers.push({ id: d.id, ...d.data() }));
+
+    // Stats
+    const bannedCount = _allAdminUsers.filter(u => u.banned).length;
+    document.getElementById('adminStatUsers').textContent = _allAdminUsers.length;
+    document.getElementById('adminStatBanned').textContent = bannedCount;
+
+    // Render reports placeholder
+    try {
+      const repSnap = await getDocs(collection(db, 'reports'));
+      document.getElementById('adminStatReports').textContent = repSnap.size;
+    } catch { document.getElementById('adminStatReports').textContent = '0'; }
+
+    renderAdminUsers(_allAdminUsers);
+  } catch (err) {
+    container.innerHTML = `<div class="admin-empty" style="color:var(--red);">// Error: ${escapeHtml(err.message)}</div>`;
+  }
+}
+
+function renderAdminUsers(users) {
+  const container = document.getElementById('adminUserList');
+  let filtered = users;
+  if (_adminUserFilter === 'banned') filtered = users.filter(u => u.banned);
+  if (_adminUserFilter === 'active') filtered = users.filter(u => !u.banned);
+
+  if (!filtered.length) {
+    container.innerHTML = `<div class="admin-empty">// No users found</div>`;
+    return;
+  }
+
+  container.innerHTML = filtered.map(u => {
+    const initials = (u.displayName || u.email || '?').slice(0, 2).toUpperCase();
+    const joined = u.createdAt?.toDate ? u.createdAt.toDate().toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' }) : '—';
+    const isBanned = !!u.banned;
+    const bannedBadge = isBanned ? `<span class="admin-badge-banned">Banned</span>` : '';
+    const banBtn = isBanned
+      ? `<button class="admin-btn unban" onclick="adminUnbanUser('${u.id}','${escapeHtml(u.displayName||u.email||'User')}')">Unban</button>`
+      : `<button class="admin-btn ban" onclick="adminBanUser('${u.id}','${escapeHtml(u.displayName||u.email||'User')}')">Ban</button>`;
+
+    return `<div class="admin-user-row ${isBanned ? 'banned' : ''}" id="admin-user-${u.id}">
+      <div class="admin-user-avatar ${isBanned ? 'banned-avatar' : ''}">${initials}</div>
+      <div class="admin-user-info">
+        <div class="admin-user-name">${escapeHtml(u.displayName || 'No name')} ${bannedBadge}</div>
+        <div class="admin-user-meta">${escapeHtml(u.email || '—')} · @${escapeHtml(u.username || '—')} · Joined ${joined}</div>
+      </div>
+      <div class="admin-actions">
+        ${banBtn}
+        <button class="admin-btn del" onclick="adminDeleteUser('${u.id}','${escapeHtml(u.displayName||u.email||'User')}')">Delete</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+window.filterAdminUsers = function(val) {
+  const q = val.toLowerCase();
+  const filtered = _allAdminUsers.filter(u =>
+    (u.displayName || '').toLowerCase().includes(q) ||
+    (u.email || '').toLowerCase().includes(q) ||
+    (u.username || '').toLowerCase().includes(q)
+  );
+  renderAdminUsers(filtered);
+};
+
+window.filterAdminUserStatus = function(btn, status) {
+  document.querySelectorAll('#adminUsers .chip').forEach(c => c.classList.remove('active'));
+  btn.classList.add('active');
+  _adminUserFilter = status;
+  renderAdminUsers(_allAdminUsers);
+};
+
+// Ban user
+window.adminBanUser = function(uid, name) {
+  adminConfirm(
+    `Ban "${name}"?`,
+    `This will prevent "${name}" from publishing or interacting on the platform. You can unban them later.`,
+    async () => {
+      try {
+        await setDoc(doc(db, 'users', uid), { banned: true, bannedAt: serverTimestamp() }, { merge: true });
+        showToast(`"${name}" has been banned`, 'success');
+        await adminLoadUsers();
+      } catch (err) { showToast('Ban failed: ' + err.message, 'error'); }
+    }
+  );
+};
+
+// Unban user
+window.adminUnbanUser = function(uid, name) {
+  adminConfirm(
+    `Unban "${name}"?`,
+    `This will restore "${name}"'s access to publish and interact on the platform.`,
+    async () => {
+      try {
+        await updateDoc(doc(db, 'users', uid), { banned: false, bannedAt: null });
+        showToast(`"${name}" has been unbanned`, 'success');
+        await adminLoadUsers();
+      } catch (err) { showToast('Unban failed: ' + err.message, 'error'); }
+    }
+  );
+};
+
+// Delete user account (Firestore doc + all their projects)
+window.adminDeleteUser = function(uid, name) {
+  adminConfirm(
+    `⚠️ Delete "${name}" permanently?`,
+    `This will delete the user account and ALL their published projects from Firestore. This cannot be undone.`,
+    async () => {
+      try {
+        // Delete all their projects first
+        const projSnap = await getDocs(query(collection(db, 'projects'), where('authorId', '==', uid)));
+        const delOps = [];
+        projSnap.forEach(d => delOps.push(deleteDoc(doc(db, 'projects', d.id))));
+        await Promise.all(delOps);
+        // Delete user doc
+        await deleteDoc(doc(db, 'users', uid));
+        showToast(`"${name}" and their projects have been deleted`, 'success');
+        await adminLoadAll();
+      } catch (err) { showToast('Delete failed: ' + err.message, 'error'); }
+    }
+  );
+};
+
+// ---- PROJECTS ----
+async function adminLoadProjects() {
+  const container = document.getElementById('adminProjectList');
+  container.innerHTML = `<div class="admin-empty">// Loading projects…</div>`;
+  try {
+    const snap = await getDocs(query(collection(db, 'projects'), orderBy('createdAt', 'desc'), limit(100)));
+    _allAdminProjects = [];
+    snap.forEach(d => _allAdminProjects.push({ id: d.id, ...d.data() }));
+    document.getElementById('adminStatProjects').textContent = _allAdminProjects.length;
+    renderAdminProjects(_allAdminProjects);
+  } catch (err) {
+    container.innerHTML = `<div class="admin-empty" style="color:var(--red);">// Error: ${escapeHtml(err.message)}</div>`;
+  }
+}
+
+function renderAdminProjects(projects) {
+  const container = document.getElementById('adminProjectList');
+  if (!projects.length) {
+    container.innerHTML = `<div class="admin-empty">// No projects found</div>`;
+    return;
+  }
+  const typeEmoji = { 'Game':'🎮','App / Tool':'📱','Video':'🎬','Photo / Art':'📷','Post':'✏️','Music / Audio':'🎵' };
+  container.innerHTML = projects.map(p => {
+    const emoji = typeEmoji[p.type] || '📦';
+    const date = p.createdAt?.toDate ? p.createdAt.toDate().toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) : '—';
+    const thumb = p.fileURL
+      ? `<img src="${p.fileURL}" onerror="this.remove();">`
+      : emoji;
+    return `<div class="admin-project-row" id="admin-proj-${p.id}">
+      <div class="admin-project-thumb">${thumb}</div>
+      <div class="admin-project-info">
+        <div class="admin-project-title">${escapeHtml(p.title || 'Untitled')}</div>
+        <div class="admin-project-meta">by ${escapeHtml(p.authorName || '—')} · ${p.type || '—'} · ${p.pricing || 'Free'} · ${date} · 👁 ${p.views || 0} · ❤️ ${p.likesCount || 0}</div>
+      </div>
+      <div class="admin-actions">
+        <button class="admin-btn view" onclick="closeAdminPanel();openProjectPage('${p.id}')">View</button>
+        <button class="admin-btn del" onclick="adminDeleteProject('${p.id}','${escapeHtml((p.title||'').replace(/'/g,"\\'"))}')">Delete</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+window.filterAdminProjects = function(val) {
+  const q = val.toLowerCase();
+  const filtered = _allAdminProjects.filter(p =>
+    (p.title || '').toLowerCase().includes(q) ||
+    (p.authorName || '').toLowerCase().includes(q) ||
+    (p.type || '').toLowerCase().includes(q)
+  );
+  renderAdminProjects(filtered);
+};
+
+window.adminDeleteProject = function(docId, title) {
+  adminConfirm(
+    `Delete "${title}"?`,
+    `This will permanently remove "${title}" from the platform. The creator will lose this project. This cannot be undone.`,
+    async () => {
+      try {
+        await deleteDoc(doc(db, 'projects', docId));
+        document.getElementById(`admin-proj-${docId}`)?.remove();
+        _allAdminProjects = _allAdminProjects.filter(p => p.id !== docId);
+        document.getElementById('adminStatProjects').textContent = _allAdminProjects.length;
+        showToast(`"${title}" deleted`, 'success');
+      } catch (err) { showToast('Delete failed: ' + err.message, 'error'); }
+    }
+  );
+};
+
+// ---- Confirm Dialog ----
+let _adminConfirmCallback = null;
+function adminConfirm(title, msg, callback) {
+  document.getElementById('adminConfirmTitle').textContent = title;
+  document.getElementById('adminConfirmMsg').textContent = msg;
+  _adminConfirmCallback = callback;
+  document.getElementById('adminConfirmBtn').onclick = async () => {
+    closeModal('adminConfirmModal');
+    await callback();
+  };
+  openModal('adminConfirmModal');
+}
