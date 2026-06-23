@@ -1559,3 +1559,109 @@ footer { background: var(--surface); border-top: 1px solid var(--border); paddin
   margin-top: 0.15rem;
   font-family: var(--font-mono);
 }
+/* ===== ADMIN PANEL ===== */
+.admin-user-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 16px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  margin-bottom: 8px;
+  transition: border-color 0.15s;
+}
+.admin-user-row:hover { border-color: var(--border2); }
+.admin-user-row.banned { border-color: rgba(239,68,68,0.3); background: rgba(239,68,68,0.04); }
+.admin-user-avatar {
+  width: 38px; height: 38px;
+  border-radius: 50%;
+  background: var(--accent-dim);
+  color: var(--accent);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.85rem; font-weight: 700;
+  font-family: var(--font-display);
+  flex-shrink: 0;
+}
+.admin-user-avatar.banned-avatar { background: rgba(239,68,68,0.15); color: var(--red); }
+.admin-user-info { flex: 1; min-width: 0; }
+.admin-user-name {
+  font-size: 0.88rem; font-weight: 700;
+  color: var(--text);
+  font-family: var(--font-display);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.admin-user-meta {
+  font-size: 0.72rem; color: var(--text3);
+  font-family: var(--font-mono);
+  margin-top: 2px;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.admin-badge-banned {
+  font-size: 0.6rem; font-weight: 700;
+  background: rgba(239,68,68,0.15);
+  color: var(--red);
+  border: 1px solid rgba(239,68,68,0.3);
+  border-radius: 4px;
+  padding: 1px 7px;
+  font-family: var(--font-mono);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  flex-shrink: 0;
+}
+.admin-actions { display: flex; gap: 6px; flex-shrink: 0; flex-wrap: wrap; }
+.admin-btn {
+  font-size: 0.65rem; font-weight: 700;
+  font-family: var(--font-mono);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 4px 10px;
+  border-radius: 4px;
+  cursor: pointer;
+  border: 1px solid var(--border2);
+  background: var(--surface2);
+  color: var(--text2);
+  transition: all 0.15s;
+  white-space: nowrap;
+}
+.admin-btn:hover { color: var(--text); border-color: var(--text3); }
+.admin-btn.ban { border-color: rgba(239,68,68,0.4); color: var(--red); background: rgba(239,68,68,0.08); }
+.admin-btn.ban:hover { background: rgba(239,68,68,0.16); }
+.admin-btn.unban { border-color: rgba(34,197,94,0.4); color: #22c55e; background: rgba(34,197,94,0.08); }
+.admin-btn.unban:hover { background: rgba(34,197,94,0.16); }
+.admin-btn.del { border-color: rgba(239,68,68,0.5); color: var(--red); background: rgba(239,68,68,0.1); }
+.admin-btn.del:hover { background: rgba(239,68,68,0.2); }
+.admin-btn.view { border-color: var(--accent-dim); color: var(--accent); background: var(--accent-dim); }
+.admin-btn.view:hover { opacity: 0.8; }
+.admin-project-row {
+  display: flex; align-items: center; gap: 14px;
+  padding: 12px 16px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  margin-bottom: 8px;
+  transition: border-color 0.15s;
+}
+.admin-project-row:hover { border-color: var(--border2); }
+.admin-project-thumb {
+  width: 44px; height: 44px;
+  border-radius: 6px;
+  background: var(--surface2);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.3rem; flex-shrink: 0; overflow: hidden;
+}
+.admin-project-thumb img { width: 100%; height: 100%; object-fit: cover; }
+.admin-project-info { flex: 1; min-width: 0; }
+.admin-project-title {
+  font-size: 0.88rem; font-weight: 700;
+  color: var(--text); font-family: var(--font-display);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.admin-project-meta {
+  font-size: 0.7rem; color: var(--text3);
+  font-family: var(--font-mono); margin-top: 2px;
+}
+.admin-empty {
+  text-align: center; padding: 3rem 2rem;
+  color: var(--text3); font-family: var(--font-mono); font-size: 0.82rem;
+}
