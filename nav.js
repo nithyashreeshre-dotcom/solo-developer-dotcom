@@ -121,8 +121,8 @@
       <h5>Create</h5>
       <a href="#" onclick="openModal('uploadModal');return false;">Publish a project</a>
       <a href="#" onclick="openModal('signupModal');return false;">Creator account</a>
-      <a href="${pages}dashboard.html">Creator dashboard</a>
-      <a href="${pages}analytics.html">Analytics</a>
+      <a href="#" onclick="if(window.openDashboard){openDashboard('dProjects');}else{window.location='${root}index.html';}return false;">Creator dashboard</a>
+      <a href="#" onclick="if(window.openDashboard){openDashboard('dAnalytics');}else{window.location='${root}index.html';}return false;">Analytics</a>
       <a href="${pages}monetization.html">Monetization</a>
       <a href="${pages}creator-faq.html">Creator FAQ</a>
     </div>
