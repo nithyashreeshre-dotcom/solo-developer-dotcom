@@ -311,6 +311,8 @@ import { initializeApp }                        from "https://www.gstatic.com/fi
       if (!file) return;
       const CLOUD_NAME    = 'dil3ndnlq';
       const UPLOAD_PRESET = 'wxrxsgt5';
+      const selectedType  = document.querySelector('.type-opt.sel .type-opt-lbl')?.textContent || 'Game';
+      const resourceType  = (selectedType === 'Video' || selectedType === 'Music / Audio') ? 'video' : 'image';
       const CHUNK_SIZE    = 20 * 1024 * 1024;
       const prog   = document.getElementById('uploadProgress');
       const bar    = document.getElementById('progressBar');
@@ -353,7 +355,7 @@ import { initializeApp }                        from "https://www.gstatic.com/fi
             prog.style.display = 'none';
             resolve(null);
           });
-          xhr.open('POST', `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/auto/upload`);
+          xhr.open('POST', `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/${resourceType}/upload`);
           xhr.send(formData);
         });
       }
@@ -379,7 +381,7 @@ import { initializeApp }                        from "https://www.gstatic.com/fi
           });
           xhr.addEventListener('load', () => { if (xhr.status === 200) resolve(JSON.parse(xhr.responseText)); else reject(new Error(xhr.responseText)); });
           xhr.addEventListener('error', () => reject(new Error('Network error')));
-          xhr.open('POST', `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/auto/upload`);
+          xhr.open('POST', `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/${resourceType}/upload`);
           xhr.setRequestHeader('X-Unique-Upload-Id', uniqueId);
           xhr.setRequestHeader('Content-Range', `bytes ${start}-${end-1}/${file.size}`);
           xhr.send(formData);
@@ -1408,3 +1410,4 @@ function adminConfirm(title, msg, callback) {
   };
   openModal('adminConfirmModal');
 }
+
