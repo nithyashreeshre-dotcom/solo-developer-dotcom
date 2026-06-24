@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Top Rated — Solo Developer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<div class="main-wrap" style="padding-top:6rem;">
+  <div style="margin-bottom:2rem;">
+    <div class="section-eyebrow">// Top Rated</div>
+    <h2 class="section-title" style="font-size:2rem;margin-bottom:0.5rem;">Top Rated Projects</h2>
+    <p style="color:var(--text3);font-size:0.9rem;">The highest rated games, apps, and creations on the platform.</p>
+  </div>
+
+  <div class="filters-row">
+    <span class="filter-label">Filter:</span>
+    <button class="chip active" onclick="toggleChip(this)">All</button>
+    <button class="chip" onclick="toggleChip(this)">Games</button>
+    <button class="chip" onclick="toggleChip(this)">Apps</button>
+    <button class="chip" onclick="toggleChip(this)">Art</button>
+    <div class="filters-right">
+      <select class="select-input">
+        <option>All time</option>
+        <option>This month</option>
+        <option>This week</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="grid-4" id="mainGrid">
+    <!-- Firestore cards load here -->
+  </div>
+</div>
+
+<script type="module" src="firebase.js"></script>
+<script src="app.js"></script>
+<script src="nav.js"></script>
+<script>
+  window.addEventListener('DOMContentLoaded', () => {
+    setTimeout(() => {
+      if (window._fb) window._fb.loadProjects('all');
+    }, 800);
+  });
+</script>
+</body>
+</html>
