@@ -148,7 +148,12 @@ import { initializeApp }                        from "https://www.gstatic.com/fi
               <div class="card-meta">
                 <span class="meta-item">${info.meta}</span>
                 <span class="meta-item">${price}</span>
-                <span class="meta-item">❤️ ${p.likesCount || 0}</span>
+                <span class="meta-item">
+                  <button onclick="event.stopPropagation();toggleLike('${docId}',this)" class="like-btn" data-count="${p.likesCount || 0}" title="Like" style="background:none;border:none;cursor:pointer;display:flex;align-items:center;gap:3px;color:var(--text3);font-size:0.72rem;padding:0;">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+                    ${p.likesCount || 0}
+                  </button>
+                </span>
               </div>
               ${p.externalLink
                 ? `<a href="${p.externalLink}" target="_blank" class="card-btn" onclick="event.stopPropagation();">View →</a>`
@@ -199,12 +204,13 @@ import { initializeApp }                        from "https://www.gstatic.com/fi
     async updateCounters() {
       try {
         const [projectsSnap, usersSnap] = await Promise.all([
-          getCountFromServer(query(collection(db, 'projects'), where('status','==','published'))),
+          getCountFromServer(collection(db, 'projects')),
           getCountFromServer(collection(db, 'users'))
         ]);
         const projectCount = projectsSnap.data().count;
         const userCount    = usersSnap.data().count;
-        document.getElementById('pill-all').textContent = projectCount || '—';
+        const pill = document.getElementById('pill-all');
+        if (pill) pill.textContent = projectCount || '—';
         animateCounter('counterCreators', projectCount);
         animateCounter('counterProjects', userCount);
         animateCounter('counterDownloads', projectCount * 3);
@@ -497,12 +503,23 @@ function timeAgo(date) {
   return 'Just now';
 }
 
-function openDashboard() {
+function openDashboard(tab) {
   document.getElementById('dashOverlay').classList.add('open');
   document.body.style.overflow = 'hidden';
   loadDashboardProjects();
   loadDashboardAnalytics();
   loadDashboardProfile();
+  // If a specific tab is requested, switch to it
+  if (tab) {
+    const tabBtn = document.querySelector(`.dash-tab[onclick*="${tab}"]`);
+    if (tabBtn) {
+      document.querySelectorAll('.dash-tab').forEach(t => t.classList.remove('active'));
+      tabBtn.classList.add('active');
+      document.querySelectorAll('.dash-panel').forEach(p => p.classList.remove('active'));
+      const panel = document.getElementById(tab);
+      if (panel) panel.classList.add('active');
+    }
+  }
 }
 
 function closeDashboard() {
