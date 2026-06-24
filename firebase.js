@@ -667,8 +667,16 @@ async function openProjectPage(docId) {
     document.getElementById('ppTitle').textContent = p.title || 'Untitled';
     document.getElementById('projectPageBreadcrumb').textContent = `// ${(p.type || 'project').toLowerCase()} · ${escapeHtml(p.title || 'untitled')}`;
     const thumbEl = document.getElementById('ppThumb');
-    if (p.fileURL) { thumbEl.innerHTML = `<img src="${p.fileURL}" style="width:100%;height:100%;object-fit:cover;" onerror="this.parentElement.textContent='${{Game:'🎮','App / Tool':'📱',Video:'🎬','Photo / Art':'📷',Post:'✏️','Music / Audio':'🎵'}[p.type] || '📦'}'">`; }
-    else { const emoji = { Game:'🎮', 'App / Tool':'📱', Video:'🎬', 'Photo / Art':'📷', Post:'✏️', 'Music / Audio':'🎵' }[p.type] || '📦'; thumbEl.textContent = emoji; }
+    const typeEmoji = { Game:'🎮', 'App / Tool':'📱', Video:'🎬', 'Photo / Art':'📷', Post:'✏️', 'Music / Audio':'🎵' }[p.type] || '📦';
+    if (p.fileURL && p.type === 'Video') {
+      thumbEl.innerHTML = `<video src="${p.fileURL}" controls autoplay style="width:100%;height:100%;object-fit:contain;background:#000;" onerror="this.parentElement.textContent='🎬'"></video>`;
+    } else if (p.fileURL && p.type === 'Music / Audio') {
+      thumbEl.innerHTML = `<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;gap:1rem;"><div style="font-size:3rem;">🎵</div><audio src="${p.fileURL}" controls style="width:90%;"></audio></div>`;
+    } else if (p.fileURL) {
+      thumbEl.innerHTML = `<img src="${p.fileURL}" style="width:100%;height:100%;object-fit:cover;" onerror="this.parentElement.textContent='${typeEmoji}'">`;
+    } else {
+      thumbEl.textContent = typeEmoji;
+    }
     const metaHtml = [];
     if (p.type) metaHtml.push(`<span class="type-badge tb-${p.type.toLowerCase().replace(/[^a-z]/g,'')}">${p.type}</span>`);
     if (p.platform) metaHtml.push(`<span style="font-size:0.72rem;color:var(--text3);font-family:var(--font-mono);">🖥 ${p.platform}</span>`);
