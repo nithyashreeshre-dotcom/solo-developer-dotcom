@@ -1,8 +1,12 @@
 // nav.js — shared navbar + footer injected on every page
-// Just include <script src="nav.js"></script> before closing </body>
-
 (function () {
-  const PAGE = window.location.pathname.split('/').pop() || 'index.html';
+  const PATH = window.location.pathname;
+  const PAGE = PATH.split('/').pop() || 'index.html';
+  const inPages = PATH.includes('/pages/');
+
+  // Prefix for links depending on where we are
+  const root  = inPages ? '../' : '';       // root-level files
+  const pages = inPages ? ''    : 'pages/'; // pages/ folder files
 
   function isActive(page) {
     return PAGE === page ? 'active' : '';
@@ -19,17 +23,17 @@
 
 <nav>
   <div class="nav-inner">
-    <a href="index.html" class="logo">
+    <a href="${root}index.html" class="logo">
       <div class="logo-mark">SD</div>
       Solo<span>dev</span>
     </a>
     <div class="nav-links">
-      <a href="index.html"        class="nav-link ${isActive('index.html')}">Browse</a>
-      <a href="top-rated.html"    class="nav-link ${isActive('top-rated.html')}">Top Rated</a>
-      <a href="new-trending.html" class="nav-link ${isActive('new-trending.html')}">New &amp; Trending</a>
-      <a href="free.html"         class="nav-link ${isActive('free.html')}">Free</a>
-      <a href="creators.html"     class="nav-link ${isActive('creators.html')}">Creators</a>
-      <a href="devlogs.html"      class="nav-link ${isActive('devlogs.html')}">Devlogs</a>
+      <a href="${root}index.html"        class="nav-link ${isActive('index.html')}">Browse</a>
+      <a href="${root}top-rated.html"    class="nav-link ${isActive('top-rated.html')}">Top Rated</a>
+      <a href="${root}new-trending.html" class="nav-link ${isActive('new-trending.html')}">New &amp; Trending</a>
+      <a href="${root}free.html"         class="nav-link ${isActive('free.html')}">Free</a>
+      <a href="${root}creators.html"     class="nav-link ${isActive('creators.html')}">Creators</a>
+      <a href="${root}devlogs.html"      class="nav-link ${isActive('devlogs.html')}">Devlogs</a>
     </div>
     <div class="nav-search-wrap">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
@@ -106,40 +110,54 @@
     </div>
     <div class="footer-col">
       <h5>Discover</h5>
-      <a href="index.html">Browse Games</a><a href="index.html">Browse Apps</a><a href="index.html">Browse Videos</a>
-      <a href="index.html">Browse Photos</a><a href="devlogs.html">Read Devlogs</a><a href="new-trending.html">New Releases</a>
+      <a href="${root}index.html">Browse Games</a>
+      <a href="${root}index.html">Browse Apps</a>
+      <a href="${root}index.html">Browse Videos</a>
+      <a href="${root}index.html">Browse Photos</a>
+      <a href="${root}devlogs.html">Read Devlogs</a>
+      <a href="${root}new-trending.html">New Releases</a>
     </div>
     <div class="footer-col">
       <h5>Create</h5>
       <a href="#" onclick="openModal('uploadModal');return false;">Publish a project</a>
       <a href="#" onclick="openModal('signupModal');return false;">Creator account</a>
-      <a href="#">Creator dashboard</a><a href="#">Analytics</a>
-      <a href="#">Monetization</a><a href="#">Creator FAQ</a>
+      <a href="${pages}dashboard.html">Creator dashboard</a>
+      <a href="${pages}analytics.html">Analytics</a>
+      <a href="${pages}monetization.html">Monetization</a>
+      <a href="${pages}creator-faq.html">Creator FAQ</a>
     </div>
     <div class="footer-col">
       <h5>Community</h5>
-      <a href="creators.html">Spotlight creators</a><a href="#">Game jams</a><a href="#">Discord server</a>
-      <a href="#">Weekly digest</a><a href="#">Creator stories</a><a href="#">Forums</a>
+      <a href="${root}creators.html">Spotlight creators</a>
+      <a href="${pages}game-jams.html">Game jams</a>
+      <a href="${pages}discord.html">Discord server</a>
+      <a href="${pages}newsletter.html">Weekly digest</a>
+      <a href="${root}creators.html">Creator stories</a>
+      <a href="${pages}forums.html">Forums</a>
     </div>
     <div class="footer-col">
       <h5>Company</h5>
-      <a href="#">About</a><a href="#">Blog</a><a href="#">Roadmap</a>
-      <a href="#">Press kit</a><a href="#">Contact</a><a href="#">Status</a>
+      <a href="${pages}about.html">About</a>
+      <a href="${pages}blog.html">Blog</a>
+      <a href="${pages}roadmap.html">Roadmap</a>
+      <a href="${pages}press.html">Press kit</a>
+      <a href="${pages}contact.html">Contact</a>
+      <a href="${pages}status.html">Status</a>
     </div>
   </div>
   <div class="footer-bottom">
     <div class="footer-bottom-left">© 2025 Solo Developer · All rights reserved</div>
     <div class="footer-bottom-right">
-      <a href="#">Privacy Policy</a><a href="#">Terms of Service</a>
-      <a href="#">Cookie Policy</a><a href="#">Accessibility</a>
+      <a href="${pages}privacy.html">Privacy Policy</a>
+      <a href="${pages}terms.html">Terms of Service</a>
+      <a href="${pages}cookies.html">Cookie Policy</a>
+      <a href="${pages}accessibility.html">Accessibility</a>
     </div>
     <div class="made-by">Made with <span>♥</span> by Shreevatsa · Bengaluru, India</div>
   </div>
 </footer>
 <button class="back-top" id="backTop" onclick="window.scrollTo({top:0,behavior:'smooth'})" title="Back to top">↑</button>`;
 
-  // Inject nav at top of body
   document.body.insertAdjacentHTML('afterbegin', NAV_HTML);
-  // Inject footer before the closing body tag
   document.body.insertAdjacentHTML('beforeend', FOOTER_HTML);
 })();
